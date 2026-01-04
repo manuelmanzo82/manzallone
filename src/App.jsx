@@ -1070,7 +1070,7 @@ const LoginScreen = ({ onLogin }) => {
 };
 
 // 2. PROFILE SELECTION (Post-login)
-const ProfileSelection = ({ onSelectProfile, data }) => (
+const ProfileSelection = ({ onSelectProfile, data, onLogout }) => (
   <div style={{
     minHeight: '100vh',
     display: 'flex',
@@ -1256,11 +1256,29 @@ const ProfileSelection = ({ onSelectProfile, data }) => (
         <span style={{ fontSize: '24px', color: tokens.colors.textMuted }}>→</span>
       </Card>
     </div>
+
+    {/* Logout button */}
+    <div style={{ marginTop: '32px', textAlign: 'center' }}>
+      <button
+        onClick={onLogout}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          color: '#ef4444',
+          fontSize: '14px',
+          padding: '12px 24px',
+          cursor: 'pointer',
+          opacity: 0.7,
+        }}
+      >
+        Esci dall'account
+      </button>
+    </div>
   </div>
 );
 
 // 3. HOME / DAILY FLOW
-const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mealsProgress = 0, weeklyMovement, onMovementToggle, onHardDay, waterCount = 0, waterTarget = 8, onWaterChange, onLogout }) => {
+const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mealsProgress = 0, weeklyMovement, onMovementToggle, onHardDay, waterCount = 0, waterTarget = 8, onWaterChange }) => {
   const profileData = data[profile];
   const today = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
   const currentWeight = profileData.weights[profileData.weights.length - 1]?.value;
@@ -1670,25 +1688,21 @@ const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mea
         
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1fr',
-          gap: '10px',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '12px',
           marginBottom: '32px',
         }}>
-          <Card onClick={() => onNavigate('shopping')} style={{ textAlign: 'center', padding: '16px 8px' }}>
-            <div style={{ fontSize: '24px', marginBottom: '4px' }}>🛒</div>
-            <div style={{ fontWeight: 600, fontSize: '11px' }}>Spesa</div>
+          <Card onClick={() => onNavigate('shopping')} style={{ textAlign: 'center', padding: '20px 12px' }}>
+            <div style={{ fontSize: '28px', marginBottom: '6px' }}>🛒</div>
+            <div style={{ fontWeight: 600, fontSize: '12px' }}>Lista spesa</div>
           </Card>
-          <Card onClick={() => onNavigate('stats')} style={{ textAlign: 'center', padding: '16px 8px' }}>
-            <div style={{ fontSize: '24px', marginBottom: '4px' }}>📊</div>
-            <div style={{ fontWeight: 600, fontSize: '11px' }}>Stats</div>
+          <Card onClick={() => onNavigate('stats')} style={{ textAlign: 'center', padding: '20px 12px' }}>
+            <div style={{ fontSize: '28px', marginBottom: '6px' }}>📊</div>
+            <div style={{ fontWeight: 600, fontSize: '12px' }}>Statistiche</div>
           </Card>
-          <Card onClick={() => onNavigate('profileSelect')} style={{ textAlign: 'center', padding: '16px 8px' }}>
-            <div style={{ fontSize: '24px', marginBottom: '4px' }}>👥</div>
-            <div style={{ fontWeight: 600, fontSize: '11px' }}>Profili</div>
-          </Card>
-          <Card onClick={onLogout} style={{ textAlign: 'center', padding: '16px 8px', background: `${tokens.colors.error}11` }}>
-            <div style={{ fontSize: '24px', marginBottom: '4px' }}>🚪</div>
-            <div style={{ fontWeight: 600, fontSize: '11px', color: tokens.colors.error }}>Esci</div>
+          <Card onClick={() => onNavigate('profileSelect')} style={{ textAlign: 'center', padding: '20px 12px' }}>
+            <div style={{ fontSize: '28px', marginBottom: '6px' }}>👥</div>
+            <div style={{ fontWeight: 600, fontSize: '12px' }}>Profili</div>
           </Card>
         </div>
         
@@ -3593,6 +3607,7 @@ export default function ManzAlloneApp() {
           <ProfileSelection
             onSelectProfile={handleSelectProfile}
             data={data}
+            onLogout={handleLogout}
           />
         )}
         
@@ -3611,10 +3626,9 @@ export default function ManzAlloneApp() {
             waterCount={waterCount[profile] || 0}
             waterTarget={data[profile]?.waterTarget || 8}
             onWaterChange={handleWaterChange}
-            onLogout={handleLogout}
           />
         )}
-        
+
         {screen === 'weight' && (
           <WeightScreen
             profile={profile}
