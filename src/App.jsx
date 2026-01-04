@@ -67,8 +67,13 @@ const supabase = {
         return { data, error: res.ok ? null : data };
       },
     }),
-    upsert: async (rows) => {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    upsert: async (rows, onConflict = null) => {
+      // Se onConflict è specificato, aggiungi il parametro alla URL
+      let url = `${SUPABASE_URL}/rest/v1/${table}`;
+      if (onConflict) {
+        url += `?on_conflict=${onConflict}`;
+      }
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
@@ -3062,16 +3067,45 @@ export default function ManzAlloneApp() {
     try {
       const today = getToday();
       const weekStart = getWeekStart();
-      
+
+      console.log('=== DEBUG loadAllData ===');
+      console.log('Today (getToday()):', today);
+      console.log('Week start:', weekStart);
+
       // Carica profili
-      const { data: profiles } = await supabase.from('profiles').select('*');
-      
+      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*');
+      console.log('Profiles loaded:', profiles, 'Error:', profilesError);
+
       // Carica pesi
-      const { data: weights } = await supabase.from('weights').select('*');
-      
+      const { data: weights, error: weightsError } = await supabase.from('weights').select('*');
+      console.log('Weights loaded:', weights?.length, 'records', 'Error:', weightsError);
+
       // Carica log giornalieri di oggi
-      const { data: dailyLogs } = await supabase.from('daily_logs').select('*');
-      const todayLogs = dailyLogs?.filter(l => l.date === today) || [];
+      const { data: dailyLogs, error: dailyLogsError } = await supabase.from('daily_logs').select('*');
+      console.log('All daily_logs from Supabase:', dailyLogs, 'Error:', dailyLogsError);
+
+      // Debug: mostra le date nei log per capire il formato
+      if (dailyLogs && dailyLogs.length > 0) {
+        console.log('Sample log dates:', dailyLogs.map(l => ({
+          profile: l.profile_id,
+          date: l.date,
+          dateType: typeof l.date,
+          water_count: l.water_count,
+          meal_statuses: l.meal_statuses,
+        })));
+      }
+
+      // Fix: confronta solo la parte YYYY-MM-DD della data (gestisce diversi formati)
+      const todayLogs = dailyLogs?.filter(l => {
+        const logDate = String(l.date).split('T')[0]; // Normalizza la data
+        const matches = logDate === today;
+        if (l.date) {
+          console.log(`Comparing: logDate="${logDate}" vs today="${today}" => ${matches}`);
+        }
+        return matches;
+      }) || [];
+      console.log('Today logs (filtered):', todayLogs);
+      console.log('Number of today logs found:', todayLogs.length);
       
       // Carica movimento settimanale
       const { data: weeklyData } = await supabase.from('weekly_movement').select('*');
@@ -3118,6 +3152,7 @@ export default function ManzAlloneApp() {
         const newWaterCount = { ...waterCount };
 
         todayLogs.forEach(log => {
+          console.log('Processing log for profile:', log.profile_id, 'Full log:', log);
           if (log.profile_id === 'manuel' || log.profile_id === 'carmen' || log.profile_id === 'ryan') {
             newTasks[log.profile_id] = {
               weight: log.weight_done,
@@ -3127,6 +3162,13 @@ export default function ManzAlloneApp() {
             };
             newMealsProgress[log.profile_id] = log.meals_progress || 0;
             newWaterCount[log.profile_id] = log.water_count || 0;
+            console.log(`Extracted for ${log.profile_id}:`, {
+              water_count: log.water_count,
+              meals_progress: log.meals_progress,
+              meal_statuses: log.meal_statuses,
+              meal_selections: log.meal_selections,
+              movement_done: log.movement_done,
+            });
             if (log.meal_statuses) {
               newMealStatuses[log.profile_id] = log.meal_statuses;
             }
@@ -3134,6 +3176,14 @@ export default function ManzAlloneApp() {
               newMealSelections[log.profile_id] = log.meal_selections;
             }
           }
+        });
+
+        console.log('Final states to set:', {
+          newTasks,
+          newMealsProgress,
+          newWaterCount,
+          newMealStatuses,
+          newMealSelections,
         });
 
         setDailyTasks(newTasks);
@@ -3167,6 +3217,11 @@ export default function ManzAlloneApp() {
           }
         });
         setWeeklyMovement(newWeeklyMovement);
+
+        console.log('=== loadAllData COMPLETED ===');
+        console.log('Final weeklyMovement state:', newWeeklyMovement);
+      } else {
+        console.log('No profiles found in database');
       }
     } catch (error) {
       console.error('Errore caricamento dati:', error);
@@ -3177,12 +3232,22 @@ export default function ManzAlloneApp() {
   // Salva log giornaliero su Supabase
   const saveDailyLog = async (profileId, updates) => {
     const today = getToday();
+    const payload = {
+      profile_id: profileId,
+      date: today,
+      ...updates,
+    };
+    console.log('=== DEBUG saveDailyLog ===');
+    console.log('Saving daily log:', payload);
     try {
-      await supabase.from('daily_logs').upsert({
-        profile_id: profileId,
-        date: today,
-        ...updates,
-      });
+      // Usa on_conflict per specificare le colonne chiave per l'upsert
+      const result = await supabase.from('daily_logs').upsert(payload, 'profile_id,date');
+      console.log('Upsert result:', result);
+      if (result.error) {
+        console.error('Supabase upsert error:', result.error);
+      } else {
+        console.log('Upsert successful, data:', result.data);
+      }
     } catch (error) {
       console.error('Errore salvataggio:', error);
     }
@@ -3191,13 +3256,20 @@ export default function ManzAlloneApp() {
   // Salva movimento settimanale
   const saveWeeklyMovement = async (profileId, done) => {
     const weekStart = getWeekStart();
+    const payload = {
+      profile_id: profileId,
+      week_start: weekStart,
+      done: done,
+      target: profileId === 'ryan' ? 3 : 4,
+    };
+    console.log('=== DEBUG saveWeeklyMovement ===');
+    console.log('Saving weekly movement:', payload);
     try {
-      await supabase.from('weekly_movement').upsert({
-        profile_id: profileId,
-        week_start: weekStart,
-        done: done,
-        target: 4,
-      });
+      const result = await supabase.from('weekly_movement').upsert(payload, 'profile_id,week_start');
+      console.log('Weekly movement upsert result:', result);
+      if (result.error) {
+        console.error('Weekly movement upsert error:', result.error);
+      }
     } catch (error) {
       console.error('Errore salvataggio movimento:', error);
     }
