@@ -258,104 +258,176 @@ const initialData = {
 };
 
 // Piano alimentare
-const mealPlan = {
+// ============================================
+// MEAL DATABASE - Struttura completa pasti
+// ============================================
+const mealDatabase = {
   colazione: {
     name: 'Colazione',
     icon: '🍳',
-    time: '07:00 - 09:00',
+    type: 'simple',
     options: [
-      {
-        id: 'yogurt',
-        name: 'Yogurt greco + frutto',
-        items: ['Yogurt greco/proteico', '1 frutto (mela/pera/banana piccola)', 'Caffè'],
-        portions: { manuel: '170g yogurt', carmen: '125g yogurt', ryan: '125g yogurt' }
-      },
-      {
-        id: 'salata',
-        name: 'Colazione salata',
-        items: ['Uova strapazzate', 'Pane integrale/segale'],
-        portions: { manuel: '2 uova + 60g pane', carmen: '1-2 uova + 40g pane', ryan: '1 uovo + 40g pane' }
-      },
-      {
-        id: 'fuori',
-        name: 'Fuori casa',
-        items: ['Cornetto semplice', 'Cappuccino'],
-        portions: { manuel: 'Standard', carmen: 'Standard', ryan: 'Standard' },
-        note: 'No extra'
-      }
+      { id: 'yogurt', name: 'Yogurt + Frutto', icon: '🥣', portions: { manuel: { yogurt: '250g', frutto: '1 medio' }, carmen: { yogurt: '200g', frutto: '1 medio' }, ryan: { yogurt: '200g', frutto: '1 medio' } } },
+      { id: 'uova', name: 'Uova + Pane', icon: '🍳', portions: { manuel: { uova: '3', pane: '80g' }, carmen: { uova: '2', pane: '60g' }, ryan: { uova: '2', pane: '60-80g' } } },
+      { id: 'toast', name: 'Toast Prosciutto', icon: '🥪', portions: { manuel: { pane: '100g', affettato: '60g', formaggio: '30g' }, carmen: { pane: '70g', affettato: '50g', formaggio: '20g' }, ryan: { pane: '70-80g', affettato: '50g', formaggio: '20g' } } },
+      { id: 'porridge', name: 'Porridge', icon: '🥣', portions: { manuel: { avena: '70g' }, carmen: { avena: '50g' }, ryan: { avena: '60g' } } },
+      { id: 'bar', name: 'Colazione Bar', icon: '☕', portions: { manuel: { note: 'Cornetto semplice + caffè' }, carmen: { note: 'Cornetto semplice + caffè' }, ryan: { note: 'Cornetto semplice + caffè' } }, warning: 'Max 2 volte a settimana' },
+      { id: 'solocaffe', name: 'Solo Caffè', icon: '☕', portions: { manuel: { note: 'Caffè senza zucchero' }, carmen: { note: 'Caffè senza zucchero' }, ryan: { note: 'Non consigliato' } } },
+      { id: 'pizzabianca', name: 'Pizza Bianca', icon: '🍕', portions: { manuel: { pizza: '120g', yogurt: '1 proteico' }, carmen: { pizza: '80g', yogurt: '1 proteico' }, ryan: { pizza: '120-150g' } }, warning: 'Opzione anti-trigger' }
     ]
   },
   spuntino1: {
     name: 'Spuntino Mattina',
     icon: '🍎',
-    time: '10:30 - 11:00',
+    type: 'simple',
     options: [
-      { id: 'yogurt_snack', name: 'Yogurt proteico', portions: { manuel: '1 vasetto', carmen: '1 vasetto', ryan: '1 vasetto' } },
-      { id: 'frutta', name: 'Frutto', portions: { manuel: '1 frutto', carmen: '1 frutto', ryan: '1 frutto' } },
-      { id: 'parmigiano', name: 'Parmigiano', portions: { manuel: '30g', carmen: '20g', ryan: '20g' } },
-      { id: 'barretta', name: 'Barretta proteica', portions: { manuel: '1', carmen: '1', ryan: '1' } },
-      { id: 'pavesini', name: 'Pavesini', portions: { manuel: '3', carmen: '2', ryan: '2' } },
+      { id: 'frutto', name: 'Frutto', icon: '🍎', portions: { manuel: { frutto: '1 medio' }, carmen: { frutto: '1 medio' }, ryan: { frutto: '1 medio' } } },
+      { id: 'yogurt', name: 'Yogurt Proteico', icon: '🥛', portions: { manuel: { yogurt: '125-150g' }, carmen: { yogurt: '125-150g' }, ryan: { yogurt: '125-150g' } } },
+      { id: 'parmigiano', name: 'Parmigiano', icon: '🧀', portions: { manuel: { parmigiano: '30g' }, carmen: { parmigiano: '30g' }, ryan: { note: 'Non consigliato' } } },
+      { id: 'minipanino', name: 'Mini Panino', icon: '🥪', portions: { manuel: { pane: '40-60g', affettato: '30-40g' }, carmen: { pane: '40-60g', affettato: '30-40g' }, ryan: { pane: '40-60g', affettato: '30-40g' } } },
+      { id: 'barretta', name: 'Barretta Proteica', icon: '🍫', portions: { manuel: { note: '1 barretta' }, carmen: { note: '1 barretta' }, ryan: { note: '1 barretta' } }, warning: 'Max 3 a settimana' },
+      { id: 'latte', name: 'Latte + Frutto', icon: '🥛', portions: { manuel: { latte: '200ml', frutto: '1' }, carmen: { latte: '200ml', frutto: '1' }, ryan: { latte: '200ml', frutto: '1' } } },
+      { id: 'niente', name: 'Nessuno Spuntino', icon: '⏭️', portions: { manuel: { note: 'Saltato' }, carmen: { note: 'Saltato' }, ryan: { note: 'Non consigliato saltare' } } }
     ]
   },
   pranzo: {
     name: 'Pranzo',
     icon: '🍝',
-    time: '12:30 - 14:00',
-    structure: ['Proteine', 'Carboidrati', 'Verdure', '1 cucchiaio olio EVO'],
-    proteins: ['Pollo', 'Tacchino', 'Manzo', 'Pesce', 'Uova'],
-    carbs: ['Pasta', 'Riso', 'Patate', 'Pane'],
-    veggies: ['Spinaci', 'Insalata', 'Piselli', 'Fagiolini'],
-    portions: {
-      manuel: { pasta: '80g crudi', meat: '180-200g' },
-      carmen: { pasta: '60g crudi', meat: '120-150g' },
-      ryan: { pasta: '60g crudi', meat: '100-120g' }
-    }
+    type: 'composed',
+    proteine: [
+      { id: 'pollo', name: 'Pollo', icon: '🍗', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'tacchino', name: 'Tacchino', icon: '🍗', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'manzo', name: 'Manzo', icon: '🥩', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'hamburger', name: 'Hamburger', icon: '🍔', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'pesceBianco', name: 'Pesce Bianco', icon: '🐟', portions: { manuel: '180-200g', carmen: '140-160g', ryan: '120-140g' } },
+      { id: 'salmone', name: 'Salmone', icon: '🍣', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'tonno', name: 'Tonno', icon: '🐟', portions: { manuel: '150g', carmen: '120g', ryan: '100g' } },
+      { id: 'uova', name: 'Uova', icon: '🥚', portions: { manuel: '3 uova', carmen: '2 uova', ryan: '2 uova' } },
+      { id: 'legumi', name: 'Legumi', icon: '🫘', portions: { manuel: '150g cotti', carmen: '120g cotti', ryan: '100g cotti' }, note: 'Non come unica fonte per Manuel' }
+    ],
+    carboidrati: [
+      { id: 'pasta', name: 'Pasta', icon: '🍝', portions: { manuel: '80g', carmen: '60g', ryan: '70-80g' } },
+      { id: 'riso', name: 'Riso', icon: '🍚', portions: { manuel: '80g', carmen: '60g', ryan: '70-80g' } },
+      { id: 'patate', name: 'Patate', icon: '🥔', portions: { manuel: '200g', carmen: '150g', ryan: '150g' } },
+      { id: 'pane', name: 'Pane', icon: '🍞', portions: { manuel: '60g', carmen: '40g', ryan: '50g' } },
+      { id: 'farro', name: 'Farro/Orzo', icon: '🌾', portions: { manuel: '80g', carmen: '60g', ryan: '70g' } },
+      { id: 'niente', name: 'Senza Carbo', icon: '⏭️', portions: { manuel: 'Solo a cena', carmen: 'Solo a cena', ryan: 'Mai' } }
+    ],
+    verdure: [
+      { id: 'spinaci', name: 'Spinaci', icon: '🥬', portions: { manuel: '200-300g', carmen: '200-300g', ryan: '150-200g' } },
+      { id: 'insalata', name: 'Insalata', icon: '🥗', portions: { manuel: 'libera', carmen: 'libera', ryan: 'libera' } },
+      { id: 'zucchine', name: 'Zucchine', icon: '🥒', portions: { manuel: 'libere', carmen: 'libere', ryan: 'libere' } },
+      { id: 'broccoli', name: 'Broccoli', icon: '🥦', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'cavolfiore', name: 'Cavolfiore', icon: '🥦', portions: { manuel: 'libero', carmen: 'libero', ryan: 'libero' } },
+      { id: 'melanzane', name: 'Melanzane', icon: '🍆', portions: { manuel: 'libere', carmen: 'libere', ryan: 'libere' } },
+      { id: 'peperoni', name: 'Peperoni', icon: '🫑', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'pomodori', name: 'Pomodori', icon: '🍅', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'finocchi', name: 'Finocchi', icon: '🥬', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'carote', name: 'Carote', icon: '🥕', portions: { manuel: 'libere', carmen: 'libere', ryan: 'libere' } },
+      { id: 'fagiolini', name: 'Fagiolini', icon: '🫛', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'piselli', name: 'Piselli', icon: '🟢', portions: { manuel: '150g max', carmen: '150g max', ryan: '100g' } }
+    ],
+    fuoriCasa: [
+      { id: 'pizzeria', name: 'Pizzeria', icon: '🍕', options: [
+        { id: 'margherita', name: 'Margherita', status: 'ok' },
+        { id: 'bianca', name: 'Bianca + Verdura', status: 'ok' },
+        { id: 'altro', name: 'Altra Pizza', status: 'warning' }
+      ], ryanNote: 'Pizza libera per Ryan' },
+      { id: 'sushi', name: 'Sushi', icon: '🍣', options: [
+        { id: 'nigiri', name: 'Nigiri/Sashimi', status: 'ok' },
+        { id: 'uramaki', name: 'Uramaki Semplici', status: 'ok' },
+        { id: 'tempura', name: 'Tempura', status: 'danger' }
+      ] },
+      { id: 'ristorante', name: 'Ristorante', icon: '🍽️', options: [
+        { id: 'secondo', name: 'Secondo + Contorno + 1 Carbo', status: 'ok' }
+      ] },
+      { id: 'fastfood', name: 'Fast Food', icon: '🍔', options: [
+        { id: 'burger', name: 'Burger Singolo + Acqua', status: 'ok' },
+        { id: 'patatine', name: '+ Patatine Piccole', status: 'warning' },
+        { id: 'dolce', name: '+ Dolce', status: 'danger' }
+      ] }
+    ]
   },
   spuntino2: {
     name: 'Spuntino Pomeriggio',
     icon: '🥜',
-    time: '16:00 - 17:00',
+    type: 'simple',
     options: [
-      { id: 'yogurt_snack', name: 'Yogurt proteico', portions: { manuel: '1 vasetto', carmen: '1 vasetto', ryan: '1 vasetto' } },
-      { id: 'frutta', name: 'Frutto', portions: { manuel: '1 frutto', carmen: '1 frutto', ryan: '1 frutto' } },
-      { id: 'parmigiano', name: 'Parmigiano', portions: { manuel: '30g', carmen: '20g', ryan: '20g' } },
-      { id: 'barretta', name: 'Barretta proteica', portions: { manuel: '1', carmen: '1', ryan: '1' } },
-      { id: 'pavesini', name: 'Pavesini', portions: { manuel: '3', carmen: '2', ryan: '2' } },
+      { id: 'frutto', name: 'Frutto', icon: '🍎', portions: { manuel: { frutto: '1 medio' }, carmen: { frutto: '1 medio' }, ryan: { frutto: '1 medio' } } },
+      { id: 'yogurt', name: 'Yogurt Proteico', icon: '🥛', portions: { manuel: { yogurt: '125-150g' }, carmen: { yogurt: '125-150g' }, ryan: { yogurt: '125-150g' } } },
+      { id: 'parmigiano', name: 'Parmigiano', icon: '🧀', portions: { manuel: { parmigiano: '30g' }, carmen: { parmigiano: '30g' }, ryan: { note: 'Non consigliato' } } },
+      { id: 'minipanino', name: 'Mini Panino', icon: '🥪', portions: { manuel: { pane: '40-60g', affettato: '30-40g' }, carmen: { pane: '40-60g', affettato: '30-40g' }, ryan: { pane: '40-60g', affettato: '30-40g' } } },
+      { id: 'barretta', name: 'Barretta Proteica', icon: '🍫', portions: { manuel: { note: '1 barretta' }, carmen: { note: '1 barretta' }, ryan: { note: '1 barretta' } }, warning: 'Max 3 a settimana' },
+      { id: 'latte', name: 'Latte + Frutto', icon: '🥛', portions: { manuel: { latte: '200ml', frutto: '1' }, carmen: { latte: '200ml', frutto: '1' }, ryan: { latte: '200ml', frutto: '1' } } },
+      { id: 'niente', name: 'Nessuno Spuntino', icon: '⏭️', portions: { manuel: { note: 'Saltato' }, carmen: { note: 'Saltato' }, ryan: { note: 'Non consigliato saltare' } } }
     ]
   },
   cena: {
     name: 'Cena',
     icon: '🍽️',
-    time: '19:30 - 21:00',
-    options: [
-      {
-        id: 'casa',
-        name: 'A casa',
-        items: ['Proteine', 'Verdure libere', 'Pane o patate'],
-        portions: { manuel: '60g pane o 200g patate', carmen: '40g pane o 150g patate', ryan: '40g pane o 150g patate' }
-      },
-      {
-        id: 'pizzeria',
-        name: 'Pizzeria',
-        items: ['Pizza normale'],
-        note: 'No antipasti',
-        portions: { manuel: '1 pizza', carmen: '1 pizza', ryan: '1 pizza piccola' }
-      },
-      {
-        id: 'trattoria',
-        name: 'Trattoria',
-        items: ['Secondo', 'Contorno'],
-        portions: { manuel: 'Standard', carmen: 'Standard', ryan: 'Standard' }
-      },
-      {
-        id: 'sushi',
-        name: 'Sushi',
-        items: ['Sushi/sashimi'],
-        note: 'Senza abbuffata',
-        portions: { manuel: 'Moderato', carmen: 'Moderato', ryan: 'Moderato' }
-      },
+    type: 'composed',
+    proteine: [
+      { id: 'pollo', name: 'Pollo', icon: '🍗', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'tacchino', name: 'Tacchino', icon: '🍗', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'manzo', name: 'Manzo', icon: '🥩', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'hamburger', name: 'Hamburger', icon: '🍔', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'pesceBianco', name: 'Pesce Bianco', icon: '🐟', portions: { manuel: '180-200g', carmen: '140-160g', ryan: '120-140g' } },
+      { id: 'salmone', name: 'Salmone', icon: '🍣', portions: { manuel: '150-180g', carmen: '120-140g', ryan: '100-120g' } },
+      { id: 'tonno', name: 'Tonno', icon: '🐟', portions: { manuel: '150g', carmen: '120g', ryan: '100g' } },
+      { id: 'uova', name: 'Uova', icon: '🥚', portions: { manuel: '3 uova', carmen: '2 uova', ryan: '2 uova' } },
+      { id: 'legumi', name: 'Legumi', icon: '🫘', portions: { manuel: '150g cotti', carmen: '120g cotti', ryan: '100g cotti' }, note: 'Non come unica fonte per Manuel' }
+    ],
+    carboidrati: [
+      { id: 'pasta', name: 'Pasta', icon: '🍝', portions: { manuel: '0-60g', carmen: '0-40g', ryan: '50-70g' } },
+      { id: 'riso', name: 'Riso', icon: '🍚', portions: { manuel: '0-60g', carmen: '0-40g', ryan: '50-70g' } },
+      { id: 'patate', name: 'Patate', icon: '🥔', portions: { manuel: '0-150g', carmen: '0-100g', ryan: '100-150g' } },
+      { id: 'pane', name: 'Pane', icon: '🍞', portions: { manuel: '0-40g', carmen: '0-30g', ryan: '40-50g' } },
+      { id: 'niente', name: 'Senza Carbo', icon: '⏭️', portions: { manuel: 'Consigliato', carmen: 'Consigliato', ryan: 'Mai senza' } }
+    ],
+    verdure: [
+      { id: 'spinaci', name: 'Spinaci', icon: '🥬', portions: { manuel: '200-300g', carmen: '200-300g', ryan: '150-200g' } },
+      { id: 'insalata', name: 'Insalata', icon: '🥗', portions: { manuel: 'libera', carmen: 'libera', ryan: 'libera' } },
+      { id: 'zucchine', name: 'Zucchine', icon: '🥒', portions: { manuel: 'libere', carmen: 'libere', ryan: 'libere' } },
+      { id: 'broccoli', name: 'Broccoli', icon: '🥦', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'cavolfiore', name: 'Cavolfiore', icon: '🥦', portions: { manuel: 'libero', carmen: 'libero', ryan: 'libero' } },
+      { id: 'melanzane', name: 'Melanzane', icon: '🍆', portions: { manuel: 'libere', carmen: 'libere', ryan: 'libere' } },
+      { id: 'peperoni', name: 'Peperoni', icon: '🫑', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'pomodori', name: 'Pomodori', icon: '🍅', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'finocchi', name: 'Finocchi', icon: '🥬', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'carote', name: 'Carote', icon: '🥕', portions: { manuel: 'libere', carmen: 'libere', ryan: 'libere' } },
+      { id: 'fagiolini', name: 'Fagiolini', icon: '🫛', portions: { manuel: 'liberi', carmen: 'liberi', ryan: 'liberi' } },
+      { id: 'piselli', name: 'Piselli', icon: '🟢', portions: { manuel: '150g max', carmen: '150g max', ryan: '100g' } }
+    ],
+    fuoriCasa: [
+      { id: 'pizzeria', name: 'Pizzeria', icon: '🍕', options: [
+        { id: 'margherita', name: 'Margherita', status: 'ok' },
+        { id: 'bianca', name: 'Bianca + Verdura', status: 'ok' },
+        { id: 'altro', name: 'Altra Pizza', status: 'warning' }
+      ], ryanNote: 'Pizza libera per Ryan' },
+      { id: 'sushi', name: 'Sushi', icon: '🍣', options: [
+        { id: 'nigiri', name: 'Nigiri/Sashimi', status: 'ok' },
+        { id: 'uramaki', name: 'Uramaki Semplici', status: 'ok' },
+        { id: 'tempura', name: 'Tempura', status: 'danger' }
+      ] },
+      { id: 'ristorante', name: 'Ristorante', icon: '🍽️', options: [
+        { id: 'secondo', name: 'Secondo + Contorno + 1 Carbo', status: 'ok' }
+      ] },
+      { id: 'fastfood', name: 'Fast Food', icon: '🍔', options: [
+        { id: 'burger', name: 'Burger Singolo + Acqua', status: 'ok' },
+        { id: 'patatine', name: '+ Patatine Piccole', status: 'warning' },
+        { id: 'dolce', name: '+ Dolce', status: 'danger' }
+      ] }
     ]
   }
+};
+
+// Meal plan per retrocompatibilità
+const mealPlan = {
+  colazione: mealDatabase.colazione,
+  spuntino1: mealDatabase.spuntino1,
+  pranzo: mealDatabase.pranzo,
+  spuntino2: mealDatabase.spuntino2,
+  cena: mealDatabase.cena
 };
 
 // Lista spesa base
@@ -2117,6 +2189,775 @@ const MealsScreen = ({ profile, data, onBack, onSave, onProgress, onStatusChange
   );
 };
 
+// ============================================
+// MEAL COMPOSER - Nuovo sistema pasti
+// ============================================
+
+// Badge componente per status ok/warning/danger
+const StatusBadge = ({ status, size = 'md' }) => {
+  const config = {
+    ok: { bg: tokens.colors.success, icon: '✓', label: 'OK' },
+    warning: { bg: tokens.colors.warning, icon: '⚠️', label: 'Attenzione' },
+    danger: { bg: tokens.colors.error, icon: '✗', label: 'Evita' }
+  };
+  const c = config[status] || config.ok;
+  const sizeStyles = size === 'sm'
+    ? { padding: '2px 8px', fontSize: '11px' }
+    : { padding: '4px 12px', fontSize: '13px' };
+
+  return (
+    <span style={{
+      ...sizeStyles,
+      background: c.bg,
+      color: tokens.colors.bg,
+      borderRadius: tokens.radius.full,
+      fontWeight: 600,
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+    }}>
+      {c.icon}
+    </span>
+  );
+};
+
+// Componente per selezionare pasti semplici (colazione, spuntino)
+const SimpleMealSelector = ({ mealData, profile, onSelect, onBack }) => {
+  const options = mealData.options || [];
+
+  // Formatta le porzioni per il profilo corrente
+  const formatPortions = (portions) => {
+    const profilePortions = portions[profile];
+    if (!profilePortions) return '';
+    if (typeof profilePortions === 'string') return profilePortions;
+    return Object.entries(profilePortions)
+      .map(([key, value]) => key === 'note' ? value : `${key}: ${value}`)
+      .join(' • ');
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: tokens.colors.bg }}>
+      <Header
+        title={mealData.name}
+        subtitle="Seleziona cosa hai mangiato"
+        onBack={onBack}
+      />
+
+      <div style={{ padding: '16px 24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {options.map((option, index) => (
+            <Card
+              key={option.id}
+              onClick={() => onSelect(option)}
+              className="animate-in"
+              style={{
+                animationDelay: `${index * 0.05}s`,
+                cursor: 'pointer',
+                border: `1px solid ${tokens.colors.bgElevated}`,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                <span style={{ fontSize: '32px' }}>{option.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{option.name}</h3>
+                    {option.warning && (
+                      <span style={{
+                        padding: '2px 8px',
+                        background: tokens.colors.warning + '22',
+                        color: tokens.colors.warning,
+                        borderRadius: tokens.radius.full,
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}>
+                        ⚠️
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '13px', color: tokens.colors.textSecondary }}>
+                    {formatPortions(option.portions)}
+                  </p>
+                  {option.warning && (
+                    <p style={{ fontSize: '12px', color: tokens.colors.warning, marginTop: '4px' }}>
+                      {option.warning}
+                    </p>
+                  )}
+                </div>
+                <span style={{ fontSize: '20px', color: tokens.colors.textMuted }}>→</span>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente per pasti composti (pranzo, cena) - A Casa
+const ComposedMealAtHome = ({ mealData, mealType, profile, onComplete, onBack }) => {
+  const [step, setStep] = useState(1); // 1: proteina, 2: carbo, 3: verdura, 4: riepilogo
+  const [selection, setSelection] = useState({
+    proteina: null,
+    carboidrato: null,
+    verdura: null
+  });
+
+  const isRyan = profile === 'ryan';
+  const isCena = mealType === 'cena';
+
+  // Per Ryan i carbo sono obbligatori, per adulti opzionali a cena
+  const carbRequired = isRyan || !isCena;
+
+  const handleSelectProteina = (item) => {
+    setSelection({ ...selection, proteina: item });
+    setStep(2);
+  };
+
+  const handleSelectCarbo = (item) => {
+    setSelection({ ...selection, carboidrato: item });
+    setStep(3);
+  };
+
+  const handleSkipCarbo = () => {
+    if (isRyan) return; // Ryan non può saltare
+    setSelection({ ...selection, carboidrato: { id: 'niente', name: 'Senza carboidrato', icon: '⏭️', portions: {} } });
+    setStep(3);
+  };
+
+  const handleSelectVerdura = (item) => {
+    setSelection({ ...selection, verdura: item });
+    setStep(4);
+  };
+
+  const handleConfirm = () => {
+    onComplete(selection);
+  };
+
+  const handleBackStep = () => {
+    if (step === 1) {
+      onBack();
+    } else {
+      setStep(step - 1);
+    }
+  };
+
+  // Verifica se la selezione ha warnings
+  const getSelectionStatus = () => {
+    let warnings = [];
+    if (selection.proteina?.note) warnings.push(selection.proteina.note);
+    if (selection.carboidrato?.id === 'niente' && isRyan) warnings.push('Ryan non dovrebbe saltare i carbo');
+    return warnings.length > 0 ? 'warning' : 'ok';
+  };
+
+  const renderStep = () => {
+    if (step === 1) {
+      return (
+        <>
+          <Header
+            title={`${mealData.name} - Proteina`}
+            subtitle="Scegli la proteina (obbligatorio)"
+            onBack={handleBackStep}
+          />
+          <div style={{ padding: '16px 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {mealData.proteine.map((item, index) => (
+                <Card
+                  key={item.id}
+                  onClick={() => handleSelectProteina(item)}
+                  className="animate-in"
+                  style={{ animationDelay: `${index * 0.03}s`, cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '28px' }}>{item.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 600 }}>{item.name}</h3>
+                      <p style={{ fontSize: '13px', color: tokens.colors.textMuted }}>
+                        {item.portions[profile]}
+                      </p>
+                      {item.note && (
+                        <p style={{ fontSize: '11px', color: tokens.colors.warning, marginTop: '2px' }}>
+                          ⚠️ {item.note}
+                        </p>
+                      )}
+                    </div>
+                    <span style={{ color: tokens.colors.textMuted }}>→</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    if (step === 2) {
+      return (
+        <>
+          <Header
+            title={`${mealData.name} - Carboidrato`}
+            subtitle={carbRequired ? "Scegli il carboidrato (obbligatorio)" : "Scegli il carboidrato (opzionale)"}
+            onBack={handleBackStep}
+          />
+          <div style={{ padding: '16px 24px' }}>
+            {!carbRequired && (
+              <Button
+                variant="ghost"
+                onClick={handleSkipCarbo}
+                style={{ width: '100%', marginBottom: '16px', justifyContent: 'center' }}
+              >
+                ⏭️ Salta (senza carboidrato)
+              </Button>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {mealData.carboidrati.filter(c => c.id !== 'niente' || !isRyan).map((item, index) => (
+                <Card
+                  key={item.id}
+                  onClick={() => handleSelectCarbo(item)}
+                  className="animate-in"
+                  style={{ animationDelay: `${index * 0.03}s`, cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '28px' }}>{item.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 600 }}>{item.name}</h3>
+                      <p style={{ fontSize: '13px', color: tokens.colors.textMuted }}>
+                        {item.portions[profile]}
+                      </p>
+                    </div>
+                    <span style={{ color: tokens.colors.textMuted }}>→</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    if (step === 3) {
+      return (
+        <>
+          <Header
+            title={`${mealData.name} - Verdura`}
+            subtitle="Scegli la verdura (obbligatorio)"
+            onBack={handleBackStep}
+          />
+          <div style={{ padding: '16px 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {mealData.verdure.map((item, index) => (
+                <Card
+                  key={item.id}
+                  onClick={() => handleSelectVerdura(item)}
+                  className="animate-in"
+                  style={{ animationDelay: `${index * 0.03}s`, cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '28px' }}>{item.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 600 }}>{item.name}</h3>
+                      <p style={{ fontSize: '13px', color: tokens.colors.textMuted }}>
+                        {item.portions[profile]}
+                      </p>
+                    </div>
+                    <span style={{ color: tokens.colors.textMuted }}>→</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // Step 4: Riepilogo
+    const status = getSelectionStatus();
+    return (
+      <>
+        <Header
+          title={`${mealData.name} - Riepilogo`}
+          subtitle="Conferma la tua selezione"
+          onBack={handleBackStep}
+        />
+        <div style={{ padding: '16px 24px' }}>
+          <Card style={{
+            marginBottom: '16px',
+            border: `2px solid ${status === 'ok' ? tokens.colors.success : tokens.colors.warning}44`
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600 }}>Il tuo pasto</h3>
+              <StatusBadge status={status} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Proteina */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '24px' }}>{selection.proteina?.icon}</span>
+                <div>
+                  <p style={{ fontSize: '14px', fontWeight: 600 }}>{selection.proteina?.name}</p>
+                  <p style={{ fontSize: '12px', color: tokens.colors.textMuted }}>
+                    {selection.proteina?.portions[profile]}
+                  </p>
+                </div>
+              </div>
+
+              {/* Carboidrato */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '24px' }}>{selection.carboidrato?.icon}</span>
+                <div>
+                  <p style={{ fontSize: '14px', fontWeight: 600 }}>{selection.carboidrato?.name}</p>
+                  <p style={{ fontSize: '12px', color: tokens.colors.textMuted }}>
+                    {selection.carboidrato?.portions?.[profile] || 'Saltato'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Verdura */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '24px' }}>{selection.verdura?.icon}</span>
+                <div>
+                  <p style={{ fontSize: '14px', fontWeight: 600 }}>{selection.verdura?.name}</p>
+                  <p style={{ fontSize: '12px', color: tokens.colors.textMuted }}>
+                    {selection.verdura?.portions[profile]}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {selection.proteina?.note && (
+              <p style={{ fontSize: '12px', color: tokens.colors.warning, marginTop: '12px' }}>
+                ⚠️ {selection.proteina.note}
+              </p>
+            )}
+          </Card>
+
+          <Button onClick={handleConfirm} style={{ width: '100%' }}>
+            ✓ Conferma Pasto
+          </Button>
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: tokens.colors.bg }}>
+      {renderStep()}
+    </div>
+  );
+};
+
+// Componente per pasti composti - Fuori Casa
+const ComposedMealOutside = ({ mealData, mealType, profile, onComplete, onBack }) => {
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
+  const fuoriCasa = mealData.fuoriCasa || [];
+  const isRyan = profile === 'ryan';
+
+  const handleSelectPlace = (place) => {
+    setSelectedPlace(place);
+    setSelectedOptions([]);
+  };
+
+  const handleToggleOption = (option) => {
+    if (selectedOptions.find(o => o.id === option.id)) {
+      setSelectedOptions(selectedOptions.filter(o => o.id !== option.id));
+    } else {
+      setSelectedOptions([...selectedOptions, option]);
+    }
+  };
+
+  const handleConfirm = () => {
+    onComplete({
+      type: 'fuoriCasa',
+      place: selectedPlace,
+      options: selectedOptions
+    });
+  };
+
+  const getOverallStatus = () => {
+    if (selectedOptions.some(o => o.status === 'danger')) return 'danger';
+    if (selectedOptions.some(o => o.status === 'warning')) return 'warning';
+    return 'ok';
+  };
+
+  if (!selectedPlace) {
+    return (
+      <div style={{ minHeight: '100vh', background: tokens.colors.bg }}>
+        <Header
+          title={`${mealData.name} - Fuori Casa`}
+          subtitle="Dove stai mangiando?"
+          onBack={onBack}
+        />
+        <div style={{ padding: '16px 24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {fuoriCasa.map((place, index) => (
+              <Card
+                key={place.id}
+                onClick={() => handleSelectPlace(place)}
+                className="animate-in"
+                style={{ animationDelay: `${index * 0.05}s`, cursor: 'pointer' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <span style={{ fontSize: '36px' }}>{place.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '17px', fontWeight: 600 }}>{place.name}</h3>
+                    {isRyan && place.ryanNote && (
+                      <p style={{ fontSize: '12px', color: tokens.colors.success, marginTop: '2px' }}>
+                        ✓ {place.ryanNote}
+                      </p>
+                    )}
+                  </div>
+                  <span style={{ color: tokens.colors.textMuted }}>→</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Opzioni per il posto selezionato
+  return (
+    <div style={{ minHeight: '100vh', background: tokens.colors.bg }}>
+      <Header
+        title={selectedPlace.name}
+        subtitle="Cosa hai ordinato?"
+        onBack={() => setSelectedPlace(null)}
+      />
+      <div style={{ padding: '16px 24px' }}>
+        {isRyan && selectedPlace.ryanNote && (
+          <Card style={{ marginBottom: '16px', background: tokens.colors.success + '11' }}>
+            <p style={{ fontSize: '13px', color: tokens.colors.success }}>
+              ✓ {selectedPlace.ryanNote}
+            </p>
+          </Card>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+          {selectedPlace.options.map((option, index) => {
+            const isSelected = selectedOptions.find(o => o.id === option.id);
+            return (
+              <Card
+                key={option.id}
+                onClick={() => handleToggleOption(option)}
+                className="animate-in"
+                style={{
+                  animationDelay: `${index * 0.03}s`,
+                  cursor: 'pointer',
+                  border: isSelected ? `2px solid ${
+                    option.status === 'ok' ? tokens.colors.success :
+                    option.status === 'warning' ? tokens.colors.warning :
+                    tokens.colors.error
+                  }` : `1px solid ${tokens.colors.bgElevated}`,
+                  background: isSelected ? `${
+                    option.status === 'ok' ? tokens.colors.success :
+                    option.status === 'warning' ? tokens.colors.warning :
+                    tokens.colors.error
+                  }11` : tokens.colors.bgCard,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '6px',
+                    border: `2px solid ${tokens.colors.textMuted}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: isSelected ? tokens.colors.primary : 'transparent',
+                  }}>
+                    {isSelected && <span style={{ color: tokens.colors.bg, fontSize: '14px' }}>✓</span>}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: 600 }}>{option.name}</h3>
+                  </div>
+                  <StatusBadge status={option.status} size="sm" />
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {selectedOptions.length > 0 && (
+          <div className="animate-in">
+            <Card style={{
+              marginBottom: '16px',
+              border: `2px solid ${
+                getOverallStatus() === 'ok' ? tokens.colors.success :
+                getOverallStatus() === 'warning' ? tokens.colors.warning :
+                tokens.colors.error
+              }44`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '14px' }}>Status pasto:</span>
+                <StatusBadge status={getOverallStatus()} />
+              </div>
+            </Card>
+
+            <Button onClick={handleConfirm} style={{ width: '100%' }}>
+              ✓ Conferma Pasto
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Componente principale per pasti composti (scelta A Casa / Fuori Casa)
+const ComposedMealSelector = ({ mealData, mealType, profile, onComplete, onBack }) => {
+  const [location, setLocation] = useState(null); // 'casa' | 'fuori'
+
+  if (!location) {
+    return (
+      <div style={{ minHeight: '100vh', background: tokens.colors.bg }}>
+        <Header
+          title={mealData.name}
+          subtitle="Dove stai mangiando?"
+          onBack={onBack}
+        />
+        <div style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Card
+              onClick={() => setLocation('casa')}
+              className="animate-in stagger-1"
+              style={{ cursor: 'pointer', padding: '24px' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <span style={{ fontSize: '48px' }}>🏠</span>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '4px' }}>A Casa</h3>
+                  <p style={{ fontSize: '14px', color: tokens.colors.textMuted }}>
+                    Componi il tuo pasto
+                  </p>
+                </div>
+                <span style={{ fontSize: '24px', color: tokens.colors.textMuted }}>→</span>
+              </div>
+            </Card>
+
+            <Card
+              onClick={() => setLocation('fuori')}
+              className="animate-in stagger-2"
+              style={{ cursor: 'pointer', padding: '24px' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <span style={{ fontSize: '48px' }}>🍽️</span>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '4px' }}>Fuori Casa</h3>
+                  <p style={{ fontSize: '14px', color: tokens.colors.textMuted }}>
+                    Pizzeria, Sushi, Ristorante, Fast Food
+                  </p>
+                </div>
+                <span style={{ fontSize: '24px', color: tokens.colors.textMuted }}>→</span>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (location === 'casa') {
+    return (
+      <ComposedMealAtHome
+        mealData={mealData}
+        mealType={mealType}
+        profile={profile}
+        onComplete={onComplete}
+        onBack={() => setLocation(null)}
+      />
+    );
+  }
+
+  return (
+    <ComposedMealOutside
+      mealData={mealData}
+      mealType={mealType}
+      profile={profile}
+      onComplete={onComplete}
+      onBack={() => setLocation(null)}
+    />
+  );
+};
+
+// Hub principale dei pasti - mostra tutti i 5 pasti
+const MealHub = ({ profile, data, onBack, onMealComplete, savedMeals }) => {
+  const [selectedMeal, setSelectedMeal] = useState(null);
+
+  const meals = ['colazione', 'spuntino1', 'pranzo', 'spuntino2', 'cena'];
+  const completedCount = meals.filter(m => savedMeals[m]).length;
+
+  const handleMealComplete = (mealKey, selection) => {
+    onMealComplete(mealKey, selection);
+    setSelectedMeal(null);
+  };
+
+  // Se un pasto è selezionato, mostra il composer appropriato
+  if (selectedMeal) {
+    const mealData = mealDatabase[selectedMeal];
+
+    if (mealData.type === 'simple') {
+      return (
+        <SimpleMealSelector
+          mealData={mealData}
+          profile={profile}
+          onSelect={(option) => handleMealComplete(selectedMeal, { type: 'simple', option })}
+          onBack={() => setSelectedMeal(null)}
+        />
+      );
+    }
+
+    return (
+      <ComposedMealSelector
+        mealData={mealData}
+        mealType={selectedMeal}
+        profile={profile}
+        onComplete={(selection) => handleMealComplete(selectedMeal, selection)}
+        onBack={() => setSelectedMeal(null)}
+      />
+    );
+  }
+
+  // Mostra la lista dei pasti
+  return (
+    <div style={{ minHeight: '100vh', background: tokens.colors.bg, paddingBottom: '40px' }}>
+      <Header
+        title="Piano Pasti"
+        subtitle={completedCount === 5 ? "✓ Completato!" : `${completedCount}/5 registrati`}
+        onBack={onBack}
+      />
+
+      {/* Progress bar */}
+      <div style={{ padding: '0 24px', marginBottom: '16px' }}>
+        <div style={{
+          height: '6px',
+          background: tokens.colors.bgElevated,
+          borderRadius: tokens.radius.full,
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${(completedCount / 5) * 100}%`,
+            background: completedCount === 5 ? tokens.colors.success : tokens.colors.primary,
+            borderRadius: tokens.radius.full,
+            transition: 'all 0.3s ease',
+          }} />
+        </div>
+        <p style={{
+          fontSize: '12px',
+          color: tokens.colors.textMuted,
+          textAlign: 'center',
+          marginTop: '8px',
+        }}>
+          💾 Salvataggio automatico
+        </p>
+      </div>
+
+      <div style={{ padding: '16px 24px' }}>
+        {/* Porzioni info */}
+        <Card style={{ marginBottom: '24px', background: `${data[profile].color}11` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '24px' }}>{data[profile].emoji}</span>
+            <div>
+              <h3 style={{ fontSize: '14px', fontWeight: 600 }}>Le tue porzioni</h3>
+              <p style={{ fontSize: '12px', color: tokens.colors.textMuted }}>
+                {profile === 'manuel' ? '1 porzione standard' : profile === 'carmen' ? '¾ porzione' : 'Porzione Ryan'}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Lista pasti */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {meals.map((mealKey, index) => {
+            const meal = mealDatabase[mealKey];
+            const saved = savedMeals[mealKey];
+            const isComplete = !!saved;
+
+            // Determina cosa mostrare come sottotitolo
+            let subtitle = isComplete ? '' : 'Tap per registrare';
+            if (saved) {
+              if (saved.type === 'simple' && saved.option) {
+                subtitle = saved.option.name;
+              } else if (saved.type === 'fuoriCasa' && saved.place) {
+                subtitle = `${saved.place.name}: ${saved.options.map(o => o.name).join(', ')}`;
+              } else if (saved.proteina) {
+                const parts = [saved.proteina.name];
+                if (saved.carboidrato && saved.carboidrato.id !== 'niente') parts.push(saved.carboidrato.name);
+                if (saved.verdura) parts.push(saved.verdura.name);
+                subtitle = parts.join(' + ');
+              }
+            }
+
+            return (
+              <Card
+                key={mealKey}
+                onClick={() => setSelectedMeal(mealKey)}
+                className="animate-in"
+                style={{
+                  animationDelay: `${index * 0.05}s`,
+                  cursor: 'pointer',
+                  border: isComplete
+                    ? `1px solid ${tokens.colors.success}44`
+                    : `1px solid ${tokens.colors.bgElevated}`,
+                  background: isComplete
+                    ? tokens.colors.success + '11'
+                    : tokens.colors.bgCard,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '28px' }}>{meal.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{meal.name}</h3>
+                      {isComplete && (
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: tokens.radius.full,
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          background: tokens.colors.success,
+                          color: tokens.colors.bg,
+                        }}>
+                          ✓
+                        </span>
+                      )}
+                    </div>
+                    <p style={{
+                      fontSize: '13px',
+                      color: isComplete ? tokens.colors.textSecondary : tokens.colors.textMuted,
+                      marginTop: '2px',
+                    }}>
+                      {subtitle}
+                    </p>
+                  </div>
+                  <span style={{ fontSize: '20px', color: tokens.colors.textMuted }}>
+                    {isComplete ? '✏️' : '→'}
+                  </span>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Nota bevande */}
+        <Card style={{ marginTop: '24px', background: tokens.colors.bgElevated }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>
+            🥤 Bevande
+          </h3>
+          <div style={{ fontSize: '13px', color: tokens.colors.textMuted }}>
+            <p>• Acqua: bevi regolarmente</p>
+            <p>• Coca Zero: max {profile === 'manuel' ? '2-3' : '1-2'}/settimana</p>
+            <p>• Alcol: 1-2 volte/settimana</p>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
 // 5. SHOPPING LIST
 const ShoppingList = ({ onBack }) => {
   // Funzione per creare una copia fresca della lista
@@ -3400,7 +4241,7 @@ export default function ManzAlloneApp() {
       [profile]: selections
     };
     setSavedMealSelections(newSelections);
-    
+
     await saveDailyLog(profile, {
       weight_done: dailyTasks[profile].weight,
       meals_done: dailyTasks[profile].meals,
@@ -3409,6 +4250,61 @@ export default function ManzAlloneApp() {
       meals_progress: mealsProgress[profile],
       meal_statuses: savedMealStatuses[profile],
       meal_selections: selections,
+      water_count: waterCount[profile],
+    });
+  };
+
+  // Handler per il nuovo MealHub - salva un singolo pasto
+  const handleMealComplete = async (mealKey, selection) => {
+    // Aggiorna le selezioni
+    const newSelections = {
+      ...savedMealSelections,
+      [profile]: {
+        ...savedMealSelections[profile],
+        [mealKey]: selection
+      }
+    };
+    setSavedMealSelections(newSelections);
+
+    // Aggiorna gli status (se c'è una selezione = 'followed')
+    const newStatuses = {
+      ...savedMealStatuses,
+      [profile]: {
+        ...savedMealStatuses[profile],
+        [mealKey]: selection ? 'followed' : null
+      }
+    };
+    setSavedMealStatuses(newStatuses);
+
+    // Conta pasti completati
+    const completedCount = Object.values(newSelections[profile]).filter(s => s !== null).length;
+    const allDone = completedCount === 5;
+
+    // Aggiorna progress
+    const newProgress = {
+      ...mealsProgress,
+      [profile]: completedCount
+    };
+    setMealsProgress(newProgress);
+
+    // Se tutti completati, segna task come fatto
+    if (allDone) {
+      const newTasks = {
+        ...dailyTasks,
+        [profile]: { ...dailyTasks[profile], meals: true }
+      };
+      setDailyTasks(newTasks);
+    }
+
+    // Salva su Supabase
+    await saveDailyLog(profile, {
+      weight_done: dailyTasks[profile].weight,
+      meals_done: allDone,
+      movement_done: dailyTasks[profile].movement,
+      hard_day: dailyTasks[profile].hardDay,
+      meals_progress: completedCount,
+      meal_statuses: newStatuses[profile],
+      meal_selections: newSelections[profile],
       water_count: waterCount[profile],
     });
   };
@@ -3639,16 +4535,18 @@ export default function ManzAlloneApp() {
         )}
         
         {screen === 'meals' && (
-          <MealsScreen
+          <MealHub
             profile={profile}
             data={data}
             onBack={() => setScreen('home')}
-            onSave={handleMealsSaved}
-            onProgress={handleMealsProgress}
-            onStatusChange={handleMealStatusChange}
-            onSelectionChange={handleMealSelectionChange}
-            savedStatuses={savedMealStatuses[profile]}
-            savedSelections={savedMealSelections[profile]}
+            onMealComplete={handleMealComplete}
+            savedMeals={savedMealSelections[profile] || {
+              colazione: null,
+              spuntino1: null,
+              pranzo: null,
+              spuntino2: null,
+              cena: null,
+            }}
           />
         )}
         
