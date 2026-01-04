@@ -1260,7 +1260,7 @@ const ProfileSelection = ({ onSelectProfile, data }) => (
 );
 
 // 3. HOME / DAILY FLOW
-const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mealsProgress = 0, weeklyMovement, onMovementToggle, onHardDay, waterCount = 0, waterTarget = 8, onWaterChange }) => {
+const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mealsProgress = 0, weeklyMovement, onMovementToggle, onHardDay, waterCount = 0, waterTarget = 8, onWaterChange, onLogout }) => {
   const profileData = data[profile];
   const today = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
   const currentWeight = profileData.weights[profileData.weights.length - 1]?.value;
@@ -1670,21 +1670,25 @@ const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mea
         
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '12px',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr',
+          gap: '10px',
           marginBottom: '32px',
         }}>
-          <Card onClick={() => onNavigate('shopping')} style={{ textAlign: 'center', padding: '20px 12px' }}>
-            <div style={{ fontSize: '28px', marginBottom: '6px' }}>🛒</div>
-            <div style={{ fontWeight: 600, fontSize: '12px' }}>Lista spesa</div>
+          <Card onClick={() => onNavigate('shopping')} style={{ textAlign: 'center', padding: '16px 8px' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>🛒</div>
+            <div style={{ fontWeight: 600, fontSize: '11px' }}>Spesa</div>
           </Card>
-          <Card onClick={() => onNavigate('stats')} style={{ textAlign: 'center', padding: '20px 12px' }}>
-            <div style={{ fontSize: '28px', marginBottom: '6px' }}>📊</div>
-            <div style={{ fontWeight: 600, fontSize: '12px' }}>Statistiche</div>
+          <Card onClick={() => onNavigate('stats')} style={{ textAlign: 'center', padding: '16px 8px' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>📊</div>
+            <div style={{ fontWeight: 600, fontSize: '11px' }}>Stats</div>
           </Card>
-          <Card onClick={() => onNavigate('profileSelect')} style={{ textAlign: 'center', padding: '20px 12px' }}>
-            <div style={{ fontSize: '28px', marginBottom: '6px' }}>🏠</div>
-            <div style={{ fontWeight: 600, fontSize: '12px' }}>Main Menu</div>
+          <Card onClick={() => onNavigate('profileSelect')} style={{ textAlign: 'center', padding: '16px 8px' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>👥</div>
+            <div style={{ fontWeight: 600, fontSize: '11px' }}>Profili</div>
+          </Card>
+          <Card onClick={onLogout} style={{ textAlign: 'center', padding: '16px 8px', background: `${tokens.colors.error}11` }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>🚪</div>
+            <div style={{ fontWeight: 600, fontSize: '11px', color: tokens.colors.error }}>Esci</div>
           </Card>
         </div>
         
@@ -2986,8 +2990,24 @@ const DayClosedScreen = ({ profile, data, onContinue }) => {
 // ============================================
 
 export default function ManzAlloneApp() {
-  const [screen, setScreen] = useState('login');
-  const [profile, setProfile] = useState(null);
+  // Controlla localStorage per la sessione salvata
+  const savedSession = (() => {
+    try {
+      const isLoggedIn = localStorage.getItem('manzallone_logged_in') === 'true';
+      const savedProfile = localStorage.getItem('manzallone_profile');
+      if (isLoggedIn && savedProfile && ['manuel', 'carmen', 'ryan'].includes(savedProfile)) {
+        return { screen: 'home', profile: savedProfile };
+      } else if (isLoggedIn) {
+        return { screen: 'profileSelect', profile: null };
+      }
+      return { screen: 'login', profile: null };
+    } catch {
+      return { screen: 'login', profile: null };
+    }
+  })();
+
+  const [screen, setScreen] = useState(savedSession.screen);
+  const [profile, setProfile] = useState(savedSession.profile);
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(true);
   const [dailyTasks, setDailyTasks] = useState({
@@ -3068,44 +3088,20 @@ export default function ManzAlloneApp() {
       const today = getToday();
       const weekStart = getWeekStart();
 
-      console.log('=== DEBUG loadAllData ===');
-      console.log('Today (getToday()):', today);
-      console.log('Week start:', weekStart);
-
       // Carica profili
-      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*');
-      console.log('Profiles loaded:', profiles, 'Error:', profilesError);
+      const { data: profiles } = await supabase.from('profiles').select('*');
 
       // Carica pesi
-      const { data: weights, error: weightsError } = await supabase.from('weights').select('*');
-      console.log('Weights loaded:', weights?.length, 'records', 'Error:', weightsError);
+      const { data: weights } = await supabase.from('weights').select('*');
 
       // Carica log giornalieri di oggi
-      const { data: dailyLogs, error: dailyLogsError } = await supabase.from('daily_logs').select('*');
-      console.log('All daily_logs from Supabase:', dailyLogs, 'Error:', dailyLogsError);
+      const { data: dailyLogs } = await supabase.from('daily_logs').select('*');
 
-      // Debug: mostra le date nei log per capire il formato
-      if (dailyLogs && dailyLogs.length > 0) {
-        console.log('Sample log dates:', dailyLogs.map(l => ({
-          profile: l.profile_id,
-          date: l.date,
-          dateType: typeof l.date,
-          water_count: l.water_count,
-          meal_statuses: l.meal_statuses,
-        })));
-      }
-
-      // Fix: confronta solo la parte YYYY-MM-DD della data (gestisce diversi formati)
+      // Filtra i log di oggi (normalizza la data per gestire diversi formati)
       const todayLogs = dailyLogs?.filter(l => {
-        const logDate = String(l.date).split('T')[0]; // Normalizza la data
-        const matches = logDate === today;
-        if (l.date) {
-          console.log(`Comparing: logDate="${logDate}" vs today="${today}" => ${matches}`);
-        }
-        return matches;
+        const logDate = String(l.date).split('T')[0];
+        return logDate === today;
       }) || [];
-      console.log('Today logs (filtered):', todayLogs);
-      console.log('Number of today logs found:', todayLogs.length);
       
       // Carica movimento settimanale
       const { data: weeklyData } = await supabase.from('weekly_movement').select('*');
@@ -3152,7 +3148,6 @@ export default function ManzAlloneApp() {
         const newWaterCount = { ...waterCount };
 
         todayLogs.forEach(log => {
-          console.log('Processing log for profile:', log.profile_id, 'Full log:', log);
           if (log.profile_id === 'manuel' || log.profile_id === 'carmen' || log.profile_id === 'ryan') {
             newTasks[log.profile_id] = {
               weight: log.weight_done,
@@ -3162,13 +3157,6 @@ export default function ManzAlloneApp() {
             };
             newMealsProgress[log.profile_id] = log.meals_progress || 0;
             newWaterCount[log.profile_id] = log.water_count || 0;
-            console.log(`Extracted for ${log.profile_id}:`, {
-              water_count: log.water_count,
-              meals_progress: log.meals_progress,
-              meal_statuses: log.meal_statuses,
-              meal_selections: log.meal_selections,
-              movement_done: log.movement_done,
-            });
             if (log.meal_statuses) {
               newMealStatuses[log.profile_id] = log.meal_statuses;
             }
@@ -3176,14 +3164,6 @@ export default function ManzAlloneApp() {
               newMealSelections[log.profile_id] = log.meal_selections;
             }
           }
-        });
-
-        console.log('Final states to set:', {
-          newTasks,
-          newMealsProgress,
-          newWaterCount,
-          newMealStatuses,
-          newMealSelections,
         });
 
         setDailyTasks(newTasks);
@@ -3217,11 +3197,6 @@ export default function ManzAlloneApp() {
           }
         });
         setWeeklyMovement(newWeeklyMovement);
-
-        console.log('=== loadAllData COMPLETED ===');
-        console.log('Final weeklyMovement state:', newWeeklyMovement);
-      } else {
-        console.log('No profiles found in database');
       }
     } catch (error) {
       console.error('Errore caricamento dati:', error);
@@ -3237,17 +3212,8 @@ export default function ManzAlloneApp() {
       date: today,
       ...updates,
     };
-    console.log('=== DEBUG saveDailyLog ===');
-    console.log('Saving daily log:', payload);
     try {
-      // Usa on_conflict per specificare le colonne chiave per l'upsert
-      const result = await supabase.from('daily_logs').upsert(payload, 'profile_id,date');
-      console.log('Upsert result:', result);
-      if (result.error) {
-        console.error('Supabase upsert error:', result.error);
-      } else {
-        console.log('Upsert successful, data:', result.data);
-      }
+      await supabase.from('daily_logs').upsert(payload, 'profile_id,date');
     } catch (error) {
       console.error('Errore salvataggio:', error);
     }
@@ -3262,30 +3228,39 @@ export default function ManzAlloneApp() {
       done: done,
       target: profileId === 'ryan' ? 3 : 4,
     };
-    console.log('=== DEBUG saveWeeklyMovement ===');
-    console.log('Saving weekly movement:', payload);
     try {
-      const result = await supabase.from('weekly_movement').upsert(payload, 'profile_id,week_start');
-      console.log('Weekly movement upsert result:', result);
-      if (result.error) {
-        console.error('Weekly movement upsert error:', result.error);
-      }
+      await supabase.from('weekly_movement').upsert(payload, 'profile_id,week_start');
     } catch (error) {
       console.error('Errore salvataggio movimento:', error);
     }
   };
   
   const handleLogin = () => {
+    try {
+      localStorage.setItem('manzallone_logged_in', 'true');
+    } catch {}
     setScreen('profileSelect');
   };
-  
+
   const handleSelectProfile = (selected) => {
     if (selected === 'stats') {
       setScreen('stats');
     } else {
+      try {
+        localStorage.setItem('manzallone_profile', selected);
+      } catch {}
       setProfile(selected);
       setScreen('home');
     }
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('manzallone_logged_in');
+      localStorage.removeItem('manzallone_profile');
+    } catch {}
+    setProfile(null);
+    setScreen('login');
   };
   
   const handleNavigate = (destination) => {
@@ -3636,6 +3611,7 @@ export default function ManzAlloneApp() {
             waterCount={waterCount[profile] || 0}
             waterTarget={data[profile]?.waterTarget || 8}
             onWaterChange={handleWaterChange}
+            onLogout={handleLogout}
           />
         )}
         
