@@ -938,8 +938,23 @@ const StatMini = ({ label, value, icon, color }) => (
 
 // 1. LOGIN SCREEN
 const LoginScreen = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  
+  const handleLogin = () => {
+    if (password === 'Manzallone26') {
+      setError('');
+      onLogin();
+    } else {
+      setError('Password errata');
+    }
+  };
+  
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLogin();
+    }
+  };
   
   return (
     <div style={{
@@ -976,37 +991,18 @@ const LoginScreen = ({ onLogin }) => {
         </p>
       </div>
       
-      <div className="animate-in stagger-1" style={{ marginBottom: '16px' }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '16px 20px',
-            background: tokens.colors.bgElevated,
-            border: `1px solid ${tokens.colors.textMuted}33`,
-            borderRadius: tokens.radius.md,
-            color: tokens.colors.textPrimary,
-            fontSize: '16px',
-            fontFamily: tokens.fonts.body,
-            outline: 'none',
-          }}
-        />
-      </div>
-      
-      <div className="animate-in stagger-2" style={{ marginBottom: '24px' }}>
+      <div className="animate-in stagger-1" style={{ marginBottom: '24px' }}>
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyPress={handleKeyPress}
           style={{
             width: '100%',
             padding: '16px 20px',
             background: tokens.colors.bgElevated,
-            border: `1px solid ${tokens.colors.textMuted}33`,
+            border: `1px solid ${error ? tokens.colors.error : tokens.colors.textMuted + '33'}`,
             borderRadius: tokens.radius.md,
             color: tokens.colors.textPrimary,
             fontSize: '16px',
@@ -1014,26 +1010,27 @@ const LoginScreen = ({ onLogin }) => {
             outline: 'none',
           }}
         />
+        {error && (
+          <p style={{
+            color: tokens.colors.error,
+            fontSize: '13px',
+            marginTop: '8px',
+            textAlign: 'center',
+          }}>
+            {error}
+          </p>
+        )}
       </div>
       
-      <div className="animate-in stagger-3">
+      <div className="animate-in stagger-2">
         <Button
-          onClick={() => onLogin()}
+          onClick={handleLogin}
           fullWidth
           size="lg"
-          style={{ marginBottom: '16px' }}
         >
           Accedi
         </Button>
       </div>
-      
-      <p className="animate-in stagger-4" style={{
-        textAlign: 'center',
-        color: tokens.colors.textMuted,
-        fontSize: '13px',
-      }}>
-        Non hai un account? <span style={{ color: tokens.colors.primary, cursor: 'pointer' }}>Registrati</span>
-      </p>
     </div>
   );
 };
@@ -3405,4 +3402,3 @@ export default function ManzAlloneApp() {
     </>
   );
 }
-
