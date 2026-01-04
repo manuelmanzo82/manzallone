@@ -1,9 +1,116 @@
 import React, { useState, useEffect } from 'react';
 
 // ============================================
-// FITCOPPIA - App Coppia per Tracking Salute
-// Design System + Flussi Completi
+// MANZALLONE - App Coppia per Tracking Salute
+// Con Supabase per sync tra dispositivi
 // ============================================
+
+// Supabase Configuration
+const SUPABASE_URL = 'https://kgppsiztemxgkbzmgtxf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JfCylmy0xPC8Lb5nfVtN6g_5NT6z8Gy';
+
+// Supabase client semplificato
+const supabase = {
+  from: (table) => ({
+    select: async (columns = '*') => {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${columns}`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        },
+      });
+      const data = await res.json();
+      return { data, error: res.ok ? null : data };
+    },
+    insert: async (rows) => {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify(rows),
+      });
+      const data = await res.json();
+      return { data, error: res.ok ? null : data };
+    },
+    update: async (updates) => ({
+      eq: async (column, value) => {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${column}=eq.${value}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify(updates),
+        });
+        const data = await res.json();
+        return { data, error: res.ok ? null : data };
+      },
+      match: async (matchObj) => {
+        const params = Object.entries(matchObj).map(([k, v]) => `${k}=eq.${v}`).join('&');
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify(updates),
+        });
+        const data = await res.json();
+        return { data, error: res.ok ? null : data };
+      },
+    }),
+    upsert: async (rows) => {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates,return=representation',
+        },
+        body: JSON.stringify(rows),
+      });
+      const data = await res.json();
+      return { data, error: res.ok ? null : data };
+    },
+    delete: async () => ({
+      match: async (matchObj) => {
+        const params = Object.entries(matchObj).map(([k, v]) => `${k}=eq.${v}`).join('&');
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+          },
+        });
+        return { error: res.ok ? null : await res.json() };
+      },
+    }),
+  }),
+};
+
+// Helper per ottenere la data di oggi in formato YYYY-MM-DD
+const getToday = () => {
+  const now = new Date();
+  return now.toISOString().split('T')[0];
+};
+
+// Helper per ottenere l'inizio della settimana (lunedì)
+const getWeekStart = () => {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(now.setDate(diff));
+  return monday.toISOString().split('T')[0];
+};
 
 // Design Tokens
 const tokens = {
@@ -2724,6 +2831,7 @@ export default function ManzAlloneApp() {
   const [screen, setScreen] = useState('login');
   const [profile, setProfile] = useState(null);
   const [data, setData] = useState(initialData);
+  const [loading, setLoading] = useState(true);
   const [dailyTasks, setDailyTasks] = useState({
     manuel: { weight: false, meals: false, movement: false, hardDay: false },
     carmen: { weight: false, meals: false, movement: false, hardDay: false },
@@ -2769,6 +2877,141 @@ export default function ManzAlloneApp() {
     },
   });
   
+  // Carica dati da Supabase all'avvio
+  useEffect(() => {
+    loadAllData();
+  }, []);
+  
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+      const today = getToday();
+      const weekStart = getWeekStart();
+      
+      // Carica profili
+      const { data: profiles } = await supabase.from('profiles').select('*');
+      
+      // Carica pesi
+      const { data: weights } = await supabase.from('weights').select('*');
+      
+      // Carica log giornalieri di oggi
+      const { data: dailyLogs } = await supabase.from('daily_logs').select('*');
+      const todayLogs = dailyLogs?.filter(l => l.date === today) || [];
+      
+      // Carica movimento settimanale
+      const { data: weeklyData } = await supabase.from('weekly_movement').select('*');
+      const thisWeekMovement = weeklyData?.filter(w => w.week_start === weekStart) || [];
+      
+      // Costruisci lo stato
+      if (profiles && profiles.length > 0) {
+        const newData = { ...initialData };
+        
+        profiles.forEach(p => {
+          if (p.id === 'manuel' || p.id === 'carmen') {
+            newData[p.id] = {
+              ...newData[p.id],
+              startWeight: parseFloat(p.start_weight),
+              targetWeight: parseFloat(p.target_weight),
+              height: p.height,
+              streak: p.streak || 0,
+              streakProtectorAvailable: p.streak_protector_available,
+              completedDays: p.completed_days || 0,
+              cyclePhase: p.cycle_phase,
+              weights: weights
+                ?.filter(w => w.profile_id === p.id)
+                .map(w => ({ date: w.date, value: parseFloat(w.value) }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date)) || [],
+            };
+          }
+        });
+        
+        // Calcola dati coppia
+        const manuelLost = newData.manuel.startWeight - (newData.manuel.weights[newData.manuel.weights.length - 1]?.value || newData.manuel.startWeight);
+        const carmenLost = newData.carmen.startWeight - (newData.carmen.weights[newData.carmen.weights.length - 1]?.value || newData.carmen.startWeight);
+        newData.couple.totalWeightLost = (manuelLost + carmenLost).toFixed(1);
+        newData.couple.coupleStreak = Math.min(newData.manuel.streak, newData.carmen.streak);
+        newData.couple.daysCompletedTogether = Math.min(newData.manuel.completedDays, newData.carmen.completedDays);
+        
+        setData(newData);
+        
+        // Carica tasks di oggi
+        const newTasks = { ...dailyTasks };
+        const newMealsProgress = { ...mealsProgress };
+        const newMealStatuses = { ...savedMealStatuses };
+        const newMealSelections = { ...savedMealSelections };
+        
+        todayLogs.forEach(log => {
+          if (log.profile_id === 'manuel' || log.profile_id === 'carmen') {
+            newTasks[log.profile_id] = {
+              weight: log.weight_done,
+              meals: log.meals_done,
+              movement: log.movement_done,
+              hardDay: log.hard_day,
+            };
+            newMealsProgress[log.profile_id] = log.meals_progress || 0;
+            if (log.meal_statuses) {
+              newMealStatuses[log.profile_id] = log.meal_statuses;
+            }
+            if (log.meal_selections) {
+              newMealSelections[log.profile_id] = log.meal_selections;
+            }
+          }
+        });
+        
+        setDailyTasks(newTasks);
+        setMealsProgress(newMealsProgress);
+        setSavedMealStatuses(newMealStatuses);
+        setSavedMealSelections(newMealSelections);
+        
+        // Carica movimento settimanale
+        const newWeeklyMovement = { ...weeklyMovement };
+        thisWeekMovement.forEach(wm => {
+          if (wm.profile_id === 'manuel' || wm.profile_id === 'carmen') {
+            const todayLog = todayLogs.find(l => l.profile_id === wm.profile_id);
+            newWeeklyMovement[wm.profile_id] = {
+              done: wm.done || 0,
+              target: wm.target || 4,
+              todayDone: todayLog?.movement_done || false,
+            };
+          }
+        });
+        setWeeklyMovement(newWeeklyMovement);
+      }
+    } catch (error) {
+      console.error('Errore caricamento dati:', error);
+    }
+    setLoading(false);
+  };
+  
+  // Salva log giornaliero su Supabase
+  const saveDailyLog = async (profileId, updates) => {
+    const today = getToday();
+    try {
+      await supabase.from('daily_logs').upsert({
+        profile_id: profileId,
+        date: today,
+        ...updates,
+      });
+    } catch (error) {
+      console.error('Errore salvataggio:', error);
+    }
+  };
+  
+  // Salva movimento settimanale
+  const saveWeeklyMovement = async (profileId, done) => {
+    const weekStart = getWeekStart();
+    try {
+      await supabase.from('weekly_movement').upsert({
+        profile_id: profileId,
+        week_start: weekStart,
+        done: done,
+        target: 4,
+      });
+    } catch (error) {
+      console.error('Errore salvataggio movimento:', error);
+    }
+  };
+  
   const handleLogin = () => {
     setScreen('profileSelect');
   };
@@ -2792,82 +3035,171 @@ export default function ManzAlloneApp() {
     }
   };
   
-  const handleSaveWeight = (newWeight) => {
-    const today = new Date().toISOString().split('T')[0];
+  const handleSaveWeight = async (newWeight) => {
+    const today = getToday();
+    
+    // Salva su Supabase
+    await supabase.from('weights').upsert({
+      profile_id: profile,
+      date: today,
+      value: newWeight,
+    });
+    
+    // Aggiorna stato locale
     const updatedData = { ...data };
-    updatedData[profile].weights.push({ date: today, value: newWeight });
+    const existingIndex = updatedData[profile].weights.findIndex(w => w.date === today);
+    if (existingIndex >= 0) {
+      updatedData[profile].weights[existingIndex].value = newWeight;
+    } else {
+      updatedData[profile].weights.push({ date: today, value: newWeight });
+    }
     setData(updatedData);
     
     // Mark weight task as done
-    setDailyTasks({
+    const newTasks = {
       ...dailyTasks,
       [profile]: { ...dailyTasks[profile], weight: true }
+    };
+    setDailyTasks(newTasks);
+    
+    // Salva daily log
+    await saveDailyLog(profile, {
+      weight_done: true,
+      meals_done: newTasks[profile].meals,
+      movement_done: newTasks[profile].movement,
+      hard_day: newTasks[profile].hardDay,
+      meals_progress: mealsProgress[profile],
+      meal_statuses: savedMealStatuses[profile],
+      meal_selections: savedMealSelections[profile],
     });
     
     setScreen('home');
   };
   
-  const handleMealsSaved = () => {
-    setDailyTasks({
+  const handleMealsSaved = async () => {
+    const newTasks = {
       ...dailyTasks,
       [profile]: { ...dailyTasks[profile], meals: true }
-    });
-    setMealsProgress({
+    };
+    setDailyTasks(newTasks);
+    
+    const newProgress = {
       ...mealsProgress,
       [profile]: 5
+    };
+    setMealsProgress(newProgress);
+    
+    await saveDailyLog(profile, {
+      weight_done: newTasks[profile].weight,
+      meals_done: true,
+      movement_done: newTasks[profile].movement,
+      hard_day: newTasks[profile].hardDay,
+      meals_progress: 5,
+      meal_statuses: savedMealStatuses[profile],
+      meal_selections: savedMealSelections[profile],
     });
+    
     setScreen('home');
   };
   
-  const handleMealsProgress = (count) => {
-    setMealsProgress({
+  const handleMealsProgress = async (count) => {
+    const newProgress = {
       ...mealsProgress,
       [profile]: count
+    };
+    setMealsProgress(newProgress);
+    
+    await saveDailyLog(profile, {
+      weight_done: dailyTasks[profile].weight,
+      meals_done: dailyTasks[profile].meals,
+      movement_done: dailyTasks[profile].movement,
+      hard_day: dailyTasks[profile].hardDay,
+      meals_progress: count,
+      meal_statuses: savedMealStatuses[profile],
+      meal_selections: savedMealSelections[profile],
     });
   };
   
-  const handleMealStatusChange = (statuses) => {
-    setSavedMealStatuses({
+  const handleMealStatusChange = async (statuses) => {
+    const newStatuses = {
       ...savedMealStatuses,
       [profile]: statuses
+    };
+    setSavedMealStatuses(newStatuses);
+    
+    await saveDailyLog(profile, {
+      weight_done: dailyTasks[profile].weight,
+      meals_done: dailyTasks[profile].meals,
+      movement_done: dailyTasks[profile].movement,
+      hard_day: dailyTasks[profile].hardDay,
+      meals_progress: mealsProgress[profile],
+      meal_statuses: statuses,
+      meal_selections: savedMealSelections[profile],
     });
   };
   
-  const handleMealSelectionChange = (selections) => {
-    setSavedMealSelections({
+  const handleMealSelectionChange = async (selections) => {
+    const newSelections = {
       ...savedMealSelections,
       [profile]: selections
+    };
+    setSavedMealSelections(newSelections);
+    
+    await saveDailyLog(profile, {
+      weight_done: dailyTasks[profile].weight,
+      meals_done: dailyTasks[profile].meals,
+      movement_done: dailyTasks[profile].movement,
+      hard_day: dailyTasks[profile].hardDay,
+      meals_progress: mealsProgress[profile],
+      meal_statuses: savedMealStatuses[profile],
+      meal_selections: selections,
     });
   };
   
-  const handleMovementToggle = (done) => {
+  const handleMovementToggle = async (done) => {
     const current = weeklyMovement[profile];
     const wasDone = current.todayDone;
+    const newDone = done 
+      ? (wasDone ? current.done : current.done + 1) 
+      : (wasDone ? current.done - 1 : current.done);
     
-    setWeeklyMovement({
+    const newWeeklyMovement = {
       ...weeklyMovement,
       [profile]: {
         ...current,
         todayDone: done,
-        done: done 
-          ? (wasDone ? current.done : current.done + 1) 
-          : (wasDone ? current.done - 1 : current.done)
+        done: newDone
       }
+    };
+    setWeeklyMovement(newWeeklyMovement);
+    
+    // Salva movimento settimanale
+    await saveWeeklyMovement(profile, newDone);
+    
+    // Salva nel daily log
+    await saveDailyLog(profile, {
+      weight_done: dailyTasks[profile].weight,
+      meals_done: dailyTasks[profile].meals,
+      movement_done: done,
+      hard_day: dailyTasks[profile].hardDay,
+      meals_progress: mealsProgress[profile],
+      meal_statuses: savedMealStatuses[profile],
+      meal_selections: savedMealSelections[profile],
     });
   };
   
-  const handleHardDay = () => {
-    // Modalità giornata difficile: salta i pasti (marcati come giornata difficile)
-    // e vai direttamente a registrare il peso
+  const handleHardDay = async () => {
+    const hardDayStatuses = {
+      colazione: 'skipped',
+      spuntino1: 'skipped',
+      pranzo: 'skipped',
+      spuntino2: 'skipped',
+      cena: 'skipped',
+    };
+    
     setSavedMealStatuses({
       ...savedMealStatuses,
-      [profile]: {
-        colazione: 'skipped',
-        spuntino1: 'skipped',
-        pranzo: 'skipped',
-        spuntino2: 'skipped',
-        cena: 'skipped',
-      }
+      [profile]: hardDayStatuses
     });
     setMealsProgress({
       ...mealsProgress,
@@ -2877,30 +3209,65 @@ export default function ManzAlloneApp() {
       ...dailyTasks,
       [profile]: { ...dailyTasks[profile], meals: true, hardDay: true }
     });
+    
+    await saveDailyLog(profile, {
+      weight_done: dailyTasks[profile].weight,
+      meals_done: true,
+      movement_done: dailyTasks[profile].movement,
+      hard_day: true,
+      meals_progress: 5,
+      meal_statuses: hardDayStatuses,
+      meal_selections: savedMealSelections[profile],
+    });
+    
     setScreen('weight');
   };
   
-  const handleCloseDay = () => {
+  const handleCloseDay = async () => {
     // Update streak
     const updatedData = { ...data };
     updatedData[profile].streak += 1;
     updatedData[profile].completedDays += 1;
-    updatedData.couple.daysCompletedTogether += 1;
-    updatedData.couple.coupleStreak += 1;
     
-    // Calculate new total weight lost
-    const manuelLost = updatedData.manuel.startWeight - updatedData.manuel.weights[updatedData.manuel.weights.length - 1]?.value;
-    const carmenLost = updatedData.carmen.startWeight - updatedData.carmen.weights[updatedData.carmen.weights.length - 1]?.value;
+    // Aggiorna su Supabase
+    await (await supabase.from('profiles').update({
+      streak: updatedData[profile].streak,
+      completed_days: updatedData[profile].completedDays,
+    })).eq('id', profile);
+    
+    // Salva day_closed
+    await saveDailyLog(profile, {
+      weight_done: true,
+      meals_done: true,
+      movement_done: dailyTasks[profile].movement,
+      hard_day: dailyTasks[profile].hardDay,
+      meals_progress: mealsProgress[profile],
+      meal_statuses: savedMealStatuses[profile],
+      meal_selections: savedMealSelections[profile],
+      day_closed: true,
+    });
+    
+    // Ricalcola dati coppia
+    const manuelLost = updatedData.manuel.startWeight - (updatedData.manuel.weights[updatedData.manuel.weights.length - 1]?.value || updatedData.manuel.startWeight);
+    const carmenLost = updatedData.carmen.startWeight - (updatedData.carmen.weights[updatedData.carmen.weights.length - 1]?.value || updatedData.carmen.startWeight);
     updatedData.couple.totalWeightLost = (manuelLost + carmenLost).toFixed(1);
+    updatedData.couple.coupleStreak = Math.min(updatedData.manuel.streak, updatedData.carmen.streak);
+    updatedData.couple.daysCompletedTogether = Math.min(updatedData.manuel.completedDays, updatedData.carmen.completedDays);
     
     setData(updatedData);
     setScreen('dayClosed');
   };
   
-  const handleCycleUpdate = (updates) => {
+  const handleCycleUpdate = async (updates) => {
     const updatedData = { ...data };
     updatedData.carmen = { ...updatedData.carmen, ...updates };
     setData(updatedData);
+    
+    // Salva su Supabase
+    await (await supabase.from('profiles').update({
+      cycle_phase: updates.cyclePhase,
+    })).eq('id', 'carmen');
+    
     setScreen('home');
   };
   
@@ -2910,6 +3277,37 @@ export default function ManzAlloneApp() {
       setDailyTasks({ ...dailyTasks, [profile]: newTasks });
     }
   };
+  
+  // Schermata di caricamento
+  if (loading) {
+    return (
+      <>
+        <GlobalStyles />
+        <AppContainer>
+          <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: tokens.colors.bg,
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🦁</div>
+            <h1 style={{
+              fontFamily: tokens.fonts.display,
+              fontSize: '28px',
+              fontWeight: 700,
+              marginBottom: '16px',
+              color: tokens.colors.primary,
+            }}>
+              ManzAllone
+            </h1>
+            <p style={{ color: tokens.colors.textMuted }}>Caricamento...</p>
+          </div>
+        </AppContainer>
+      </>
+    );
+  }
   
   return (
     <>
@@ -3007,3 +3405,4 @@ export default function ManzAlloneApp() {
     </>
   );
 }
+
