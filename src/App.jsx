@@ -137,9 +137,10 @@ const tokens = {
     warning: '#FBBF24',
     error: '#F87171',
     
-    // Manuel & Carmen
+    // Manuel, Carmen & Ryan
     manuel: '#6B8AFF',
     carmen: '#FF8AC4',
+    ryan: '#7ED957', // Verde per Ryan
   },
   
   fonts: {
@@ -181,6 +182,7 @@ const initialData = {
     streak: 4,
     streakProtectorAvailable: true,
     completedDays: 4,
+    waterTarget: 8, // Bicchieri d'acqua obiettivo
     portions: {
       yogurt: '170g',
       eggs: '2 uova',
@@ -206,6 +208,7 @@ const initialData = {
     streak: 4,
     streakProtectorAvailable: true,
     completedDays: 4,
+    waterTarget: 8, // Bicchieri d'acqua obiettivo
     cycleStart: null,
     cyclePhase: null, // 'mestruale', 'follicolare', 'ovulazione', 'luteale'
     portions: {
@@ -214,6 +217,31 @@ const initialData = {
       bread: '40g',
       pasta: '60g',
       meat: '120-150g',
+      potatoes: '150g',
+    }
+  },
+  ryan: {
+    name: 'Ryan',
+    emoji: '👦',
+    color: tokens.colors.ryan,
+    startWeight: 43,
+    targetWeight: 43, // Obiettivo: crescita sana, non perdita peso
+    height: 153,
+    weights: [
+      { date: '2025-01-04', value: 43.0 },
+    ],
+    streak: 0,
+    streakProtectorAvailable: true,
+    completedDays: 0,
+    goal: 'crescita_sana', // Obiettivo specifico per Ryan
+    restrictions: null, // Nessuna restrizione
+    waterTarget: 4, // Bicchieri d'acqua obiettivo
+    portions: {
+      yogurt: '125g',
+      eggs: '1 uovo',
+      bread: '40g',
+      pasta: '60g',
+      meat: '100-120g',
       potatoes: '150g',
     }
   },
@@ -235,19 +263,19 @@ const mealPlan = {
         id: 'yogurt',
         name: 'Yogurt greco + frutto',
         items: ['Yogurt greco/proteico', '1 frutto (mela/pera/banana piccola)', 'Caffè'],
-        portions: { manuel: '170g yogurt', carmen: '125g yogurt' }
+        portions: { manuel: '170g yogurt', carmen: '125g yogurt', ryan: '125g yogurt' }
       },
       {
         id: 'salata',
         name: 'Colazione salata',
         items: ['Uova strapazzate', 'Pane integrale/segale'],
-        portions: { manuel: '2 uova + 60g pane', carmen: '1-2 uova + 40g pane' }
+        portions: { manuel: '2 uova + 60g pane', carmen: '1-2 uova + 40g pane', ryan: '1 uovo + 40g pane' }
       },
       {
         id: 'fuori',
         name: 'Fuori casa',
         items: ['Cornetto semplice', 'Cappuccino'],
-        portions: { manuel: 'Standard', carmen: 'Standard' },
+        portions: { manuel: 'Standard', carmen: 'Standard', ryan: 'Standard' },
         note: 'No extra'
       }
     ]
@@ -257,11 +285,11 @@ const mealPlan = {
     icon: '🍎',
     time: '10:30 - 11:00',
     options: [
-      { id: 'yogurt_snack', name: 'Yogurt proteico', portions: { manuel: '1 vasetto', carmen: '1 vasetto' } },
-      { id: 'frutta', name: 'Frutto', portions: { manuel: '1 frutto', carmen: '1 frutto' } },
-      { id: 'parmigiano', name: 'Parmigiano', portions: { manuel: '30g', carmen: '20g' } },
-      { id: 'barretta', name: 'Barretta proteica', portions: { manuel: '1', carmen: '1' } },
-      { id: 'pavesini', name: 'Pavesini', portions: { manuel: '3', carmen: '2' } },
+      { id: 'yogurt_snack', name: 'Yogurt proteico', portions: { manuel: '1 vasetto', carmen: '1 vasetto', ryan: '1 vasetto' } },
+      { id: 'frutta', name: 'Frutto', portions: { manuel: '1 frutto', carmen: '1 frutto', ryan: '1 frutto' } },
+      { id: 'parmigiano', name: 'Parmigiano', portions: { manuel: '30g', carmen: '20g', ryan: '20g' } },
+      { id: 'barretta', name: 'Barretta proteica', portions: { manuel: '1', carmen: '1', ryan: '1' } },
+      { id: 'pavesini', name: 'Pavesini', portions: { manuel: '3', carmen: '2', ryan: '2' } },
     ]
   },
   pranzo: {
@@ -274,7 +302,8 @@ const mealPlan = {
     veggies: ['Spinaci', 'Insalata', 'Piselli', 'Fagiolini'],
     portions: {
       manuel: { pasta: '80g crudi', meat: '180-200g' },
-      carmen: { pasta: '60g crudi', meat: '120-150g' }
+      carmen: { pasta: '60g crudi', meat: '120-150g' },
+      ryan: { pasta: '60g crudi', meat: '100-120g' }
     }
   },
   spuntino2: {
@@ -282,11 +311,11 @@ const mealPlan = {
     icon: '🥜',
     time: '16:00 - 17:00',
     options: [
-      { id: 'yogurt_snack', name: 'Yogurt proteico', portions: { manuel: '1 vasetto', carmen: '1 vasetto' } },
-      { id: 'frutta', name: 'Frutto', portions: { manuel: '1 frutto', carmen: '1 frutto' } },
-      { id: 'parmigiano', name: 'Parmigiano', portions: { manuel: '30g', carmen: '20g' } },
-      { id: 'barretta', name: 'Barretta proteica', portions: { manuel: '1', carmen: '1' } },
-      { id: 'pavesini', name: 'Pavesini', portions: { manuel: '3', carmen: '2' } },
+      { id: 'yogurt_snack', name: 'Yogurt proteico', portions: { manuel: '1 vasetto', carmen: '1 vasetto', ryan: '1 vasetto' } },
+      { id: 'frutta', name: 'Frutto', portions: { manuel: '1 frutto', carmen: '1 frutto', ryan: '1 frutto' } },
+      { id: 'parmigiano', name: 'Parmigiano', portions: { manuel: '30g', carmen: '20g', ryan: '20g' } },
+      { id: 'barretta', name: 'Barretta proteica', portions: { manuel: '1', carmen: '1', ryan: '1' } },
+      { id: 'pavesini', name: 'Pavesini', portions: { manuel: '3', carmen: '2', ryan: '2' } },
     ]
   },
   cena: {
@@ -298,27 +327,27 @@ const mealPlan = {
         id: 'casa',
         name: 'A casa',
         items: ['Proteine', 'Verdure libere', 'Pane o patate'],
-        portions: { manuel: '60g pane o 200g patate', carmen: '40g pane o 150g patate' }
+        portions: { manuel: '60g pane o 200g patate', carmen: '40g pane o 150g patate', ryan: '40g pane o 150g patate' }
       },
       {
         id: 'pizzeria',
         name: 'Pizzeria',
         items: ['Pizza normale'],
         note: 'No antipasti',
-        portions: { manuel: '1 pizza', carmen: '1 pizza' }
+        portions: { manuel: '1 pizza', carmen: '1 pizza', ryan: '1 pizza piccola' }
       },
       {
         id: 'trattoria',
         name: 'Trattoria',
         items: ['Secondo', 'Contorno'],
-        portions: { manuel: 'Standard', carmen: 'Standard' }
+        portions: { manuel: 'Standard', carmen: 'Standard', ryan: 'Standard' }
       },
       {
         id: 'sushi',
         name: 'Sushi',
         items: ['Sushi/sashimi'],
         note: 'Senza abbuffata',
-        portions: { manuel: 'Moderato', carmen: 'Moderato' }
+        portions: { manuel: 'Moderato', carmen: 'Moderato', ryan: 'Moderato' }
       },
     ]
   }
@@ -987,7 +1016,7 @@ const LoginScreen = ({ onLogin }) => {
           color: tokens.colors.textMuted,
           fontSize: '15px',
         }}>
-          Manuel + Carmen 💪
+          Manuel + Carmen + Ryan 💪
         </p>
       </div>
       
@@ -1141,11 +1170,51 @@ const ProfileSelection = ({ onSelectProfile, data }) => (
         </div>
         <span style={{ fontSize: '24px', color: tokens.colors.textMuted }}>→</span>
       </Card>
-      
+
+      {/* Ryan */}
+      <Card
+        onClick={() => onSelectProfile('ryan')}
+        className="animate-in stagger-3"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '20px',
+          border: `2px solid ${data.ryan.color}44`,
+          background: `linear-gradient(135deg, ${tokens.colors.bgCard}, ${data.ryan.color}11)`,
+        }}
+      >
+        <div style={{
+          width: '72px',
+          height: '72px',
+          borderRadius: '50%',
+          background: `${data.ryan.color}22`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '36px',
+        }}>
+          👦
+        </div>
+        <div style={{ flex: 1 }}>
+          <h2 style={{
+            fontFamily: tokens.fonts.display,
+            fontSize: '22px',
+            fontWeight: 600,
+            marginBottom: '4px',
+          }}>
+            Ryan
+          </h2>
+          <p style={{ color: tokens.colors.textMuted, fontSize: '14px' }}>
+            {data.ryan.weights[data.ryan.weights.length - 1]?.value} kg • Streak: {data.ryan.streak} 🔥
+          </p>
+        </div>
+        <span style={{ fontSize: '24px', color: tokens.colors.textMuted }}>→</span>
+      </Card>
+
       {/* Statistiche */}
       <Card
         onClick={() => onSelectProfile('stats')}
-        className="animate-in stagger-3"
+        className="animate-in stagger-4"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -1186,7 +1255,7 @@ const ProfileSelection = ({ onSelectProfile, data }) => (
 );
 
 // 3. HOME / DAILY FLOW
-const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mealsProgress = 0, weeklyMovement, onMovementToggle, onHardDay }) => {
+const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mealsProgress = 0, weeklyMovement, onMovementToggle, onHardDay, waterCount = 0, waterTarget = 8, onWaterChange }) => {
   const profileData = data[profile];
   const today = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
   const currentWeight = profileData.weights[profileData.weights.length - 1]?.value;
@@ -1468,9 +1537,9 @@ const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mea
               textAlign: 'center',
             }}>
               <span style={{ fontSize: '16px' }}>🎉</span>
-              <span style={{ 
-                marginLeft: '8px', 
-                color: tokens.colors.success, 
+              <span style={{
+                marginLeft: '8px',
+                color: tokens.colors.success,
                 fontWeight: 600,
                 fontSize: '14px',
               }}>
@@ -1479,7 +1548,142 @@ const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mea
             </div>
           )}
         </div>
-        
+
+        {/* Water Counter */}
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '12px',
+          }}>
+            <h2 style={{
+              fontFamily: tokens.fonts.display,
+              fontSize: '18px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}>
+              <span>💧</span> Acqua
+            </h2>
+            <span style={{
+              background: waterCount >= waterTarget
+                ? `${tokens.colors.success}22`
+                : `${tokens.colors.tertiary}22`,
+              color: waterCount >= waterTarget
+                ? tokens.colors.success
+                : tokens.colors.tertiary,
+              padding: '6px 12px',
+              borderRadius: tokens.radius.full,
+              fontSize: '14px',
+              fontWeight: 700,
+              fontFamily: tokens.fonts.mono,
+            }}>
+              {waterCount}/{waterTarget} 🥛
+            </span>
+          </div>
+
+          {/* Progress bar acqua */}
+          <div style={{
+            height: '8px',
+            background: tokens.colors.bgElevated,
+            borderRadius: tokens.radius.full,
+            overflow: 'hidden',
+            marginBottom: '16px',
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.min((waterCount / waterTarget) * 100, 100)}%`,
+              background: waterCount >= waterTarget
+                ? tokens.colors.success
+                : tokens.colors.tertiary,
+              borderRadius: tokens.radius.full,
+              transition: 'all 0.3s ease',
+            }} />
+          </div>
+
+          {/* Bottoni +/- acqua */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            padding: '16px',
+            background: tokens.colors.bgElevated,
+            borderRadius: tokens.radius.md,
+          }}>
+            <button
+              onClick={() => onWaterChange && onWaterChange(Math.max(0, waterCount - 1))}
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                border: `2px solid ${tokens.colors.textMuted}`,
+                background: 'transparent',
+                color: tokens.colors.textPrimary,
+                fontSize: '24px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              −
+            </button>
+            <div style={{
+              fontSize: '36px',
+              fontWeight: 700,
+              fontFamily: tokens.fonts.display,
+              color: waterCount >= waterTarget ? tokens.colors.success : tokens.colors.tertiary,
+              minWidth: '60px',
+              textAlign: 'center',
+            }}>
+              {waterCount}
+            </div>
+            <button
+              onClick={() => onWaterChange && onWaterChange(waterCount + 1)}
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                border: 'none',
+                background: tokens.colors.tertiary,
+                color: tokens.colors.bg,
+                fontSize: '24px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              +
+            </button>
+          </div>
+
+          {waterCount >= waterTarget && (
+            <div style={{
+              marginTop: '12px',
+              padding: '12px 16px',
+              background: `${tokens.colors.success}11`,
+              borderRadius: tokens.radius.md,
+              textAlign: 'center',
+            }}>
+              <span style={{ fontSize: '16px' }}>💪</span>
+              <span style={{
+                marginLeft: '8px',
+                color: tokens.colors.success,
+                fontWeight: 600,
+                fontSize: '14px',
+              }}>
+                Obiettivo acqua raggiunto!
+              </span>
+            </div>
+          )}
+        </div>
+
         {/* Carmen cycle tracking */}
         {profile === 'carmen' && (
           <Card style={{ marginBottom: '24px', background: `${tokens.colors.carmen}11` }}>
@@ -1617,7 +1821,7 @@ const MealsScreen = ({ profile, data, onBack, onSave, onProgress, onStatusChange
     spuntino2: null,
     cena: null,
   });
-  
+
   const [mealStatuses, setMealStatuses] = useState(savedStatuses || {
     colazione: null,
     spuntino1: null,
@@ -1625,7 +1829,20 @@ const MealsScreen = ({ profile, data, onBack, onSave, onProgress, onStatusChange
     spuntino2: null,
     cena: null,
   });
-  
+
+  // FIX: Aggiorna lo stato quando i dati salvati cambiano (caricati da Supabase)
+  useEffect(() => {
+    if (savedStatuses) {
+      setMealStatuses(savedStatuses);
+    }
+  }, [savedStatuses]);
+
+  useEffect(() => {
+    if (savedSelections) {
+      setSelectedMeals(savedSelections);
+    }
+  }, [savedSelections]);
+
   // Quale pasto è espanso (accordion)
   const [expandedMeal, setExpandedMeal] = useState(null);
   
@@ -2832,14 +3049,22 @@ export default function ManzAlloneApp() {
   const [dailyTasks, setDailyTasks] = useState({
     manuel: { weight: false, meals: false, movement: false, hardDay: false },
     carmen: { weight: false, meals: false, movement: false, hardDay: false },
+    ryan: { weight: false, meals: false, movement: false, hardDay: false },
   });
   const [mealsProgress, setMealsProgress] = useState({
     manuel: 0,
     carmen: 0,
+    ryan: 0,
   });
   const [weeklyMovement, setWeeklyMovement] = useState({
     manuel: { done: 0, target: 4, todayDone: false },
     carmen: { done: 0, target: 4, todayDone: false },
+    ryan: { done: 0, target: 3, todayDone: false },
+  });
+  const [waterCount, setWaterCount] = useState({
+    manuel: 0,
+    carmen: 0,
+    ryan: 0,
   });
   const [savedMealStatuses, setSavedMealStatuses] = useState({
     manuel: {
@@ -2856,6 +3081,13 @@ export default function ManzAlloneApp() {
       spuntino2: null,
       cena: null,
     },
+    ryan: {
+      colazione: null,
+      spuntino1: null,
+      pranzo: null,
+      spuntino2: null,
+      cena: null,
+    },
   });
   const [savedMealSelections, setSavedMealSelections] = useState({
     manuel: {
@@ -2866,6 +3098,13 @@ export default function ManzAlloneApp() {
       cena: null,
     },
     carmen: {
+      colazione: null,
+      spuntino1: null,
+      pranzo: null,
+      spuntino2: null,
+      cena: null,
+    },
+    ryan: {
       colazione: null,
       spuntino1: null,
       pranzo: null,
@@ -2904,7 +3143,7 @@ export default function ManzAlloneApp() {
         const newData = { ...initialData };
         
         profiles.forEach(p => {
-          if (p.id === 'manuel' || p.id === 'carmen') {
+          if (p.id === 'manuel' || p.id === 'carmen' || p.id === 'ryan') {
             newData[p.id] = {
               ...newData[p.id],
               startWeight: parseFloat(p.start_weight),
@@ -2914,6 +3153,7 @@ export default function ManzAlloneApp() {
               streakProtectorAvailable: p.streak_protector_available,
               completedDays: p.completed_days || 0,
               cyclePhase: p.cycle_phase,
+              waterTarget: p.water_target || (p.id === 'ryan' ? 4 : 8),
               weights: weights
                 ?.filter(w => w.profile_id === p.id)
                 .map(w => ({ date: w.date, value: parseFloat(w.value) }))
@@ -2936,9 +3176,10 @@ export default function ManzAlloneApp() {
         const newMealsProgress = { ...mealsProgress };
         const newMealStatuses = { ...savedMealStatuses };
         const newMealSelections = { ...savedMealSelections };
-        
+        const newWaterCount = { ...waterCount };
+
         todayLogs.forEach(log => {
-          if (log.profile_id === 'manuel' || log.profile_id === 'carmen') {
+          if (log.profile_id === 'manuel' || log.profile_id === 'carmen' || log.profile_id === 'ryan') {
             newTasks[log.profile_id] = {
               weight: log.weight_done,
               meals: log.meals_done,
@@ -2946,6 +3187,7 @@ export default function ManzAlloneApp() {
               hardDay: log.hard_day,
             };
             newMealsProgress[log.profile_id] = log.meals_progress || 0;
+            newWaterCount[log.profile_id] = log.water_count || 0;
             if (log.meal_statuses) {
               newMealStatuses[log.profile_id] = log.meal_statuses;
             }
@@ -2954,20 +3196,21 @@ export default function ManzAlloneApp() {
             }
           }
         });
-        
+
         setDailyTasks(newTasks);
         setMealsProgress(newMealsProgress);
         setSavedMealStatuses(newMealStatuses);
         setSavedMealSelections(newMealSelections);
-        
+        setWaterCount(newWaterCount);
+
         // Carica movimento settimanale
         const newWeeklyMovement = { ...weeklyMovement };
         thisWeekMovement.forEach(wm => {
-          if (wm.profile_id === 'manuel' || wm.profile_id === 'carmen') {
+          if (wm.profile_id === 'manuel' || wm.profile_id === 'carmen' || wm.profile_id === 'ryan') {
             const todayLog = todayLogs.find(l => l.profile_id === wm.profile_id);
             newWeeklyMovement[wm.profile_id] = {
               done: wm.done || 0,
-              target: wm.target || 4,
+              target: wm.target || (wm.profile_id === 'ryan' ? 3 : 4),
               todayDone: todayLog?.movement_done || false,
             };
           }
@@ -3068,11 +3311,12 @@ export default function ManzAlloneApp() {
       meals_progress: mealsProgress[profile],
       meal_statuses: savedMealStatuses[profile],
       meal_selections: savedMealSelections[profile],
+      water_count: waterCount[profile],
     });
-    
+
     setScreen('home');
   };
-  
+
   const handleMealsSaved = async () => {
     const newTasks = {
       ...dailyTasks,
@@ -3094,11 +3338,12 @@ export default function ManzAlloneApp() {
       meals_progress: 5,
       meal_statuses: savedMealStatuses[profile],
       meal_selections: savedMealSelections[profile],
+      water_count: waterCount[profile],
     });
-    
+
     setScreen('home');
   };
-  
+
   const handleMealsProgress = async (count) => {
     const newProgress = {
       ...mealsProgress,
@@ -3114,9 +3359,10 @@ export default function ManzAlloneApp() {
       meals_progress: count,
       meal_statuses: savedMealStatuses[profile],
       meal_selections: savedMealSelections[profile],
+      water_count: waterCount[profile],
     });
   };
-  
+
   const handleMealStatusChange = async (statuses) => {
     const newStatuses = {
       ...savedMealStatuses,
@@ -3132,9 +3378,10 @@ export default function ManzAlloneApp() {
       meals_progress: mealsProgress[profile],
       meal_statuses: statuses,
       meal_selections: savedMealSelections[profile],
+      water_count: waterCount[profile],
     });
   };
-  
+
   const handleMealSelectionChange = async (selections) => {
     const newSelections = {
       ...savedMealSelections,
@@ -3150,9 +3397,10 @@ export default function ManzAlloneApp() {
       meals_progress: mealsProgress[profile],
       meal_statuses: savedMealStatuses[profile],
       meal_selections: selections,
+      water_count: waterCount[profile],
     });
   };
-  
+
   const handleMovementToggle = async (done) => {
     const current = weeklyMovement[profile];
     const wasDone = current.todayDone;
@@ -3182,9 +3430,29 @@ export default function ManzAlloneApp() {
       meals_progress: mealsProgress[profile],
       meal_statuses: savedMealStatuses[profile],
       meal_selections: savedMealSelections[profile],
+      water_count: waterCount[profile],
     });
   };
-  
+
+  const handleWaterChange = async (newCount) => {
+    const newWaterCount = {
+      ...waterCount,
+      [profile]: newCount
+    };
+    setWaterCount(newWaterCount);
+
+    await saveDailyLog(profile, {
+      weight_done: dailyTasks[profile].weight,
+      meals_done: dailyTasks[profile].meals,
+      movement_done: dailyTasks[profile].movement,
+      hard_day: dailyTasks[profile].hardDay,
+      meals_progress: mealsProgress[profile],
+      meal_statuses: savedMealStatuses[profile],
+      meal_selections: savedMealSelections[profile],
+      water_count: newCount,
+    });
+  };
+
   const handleHardDay = async () => {
     const hardDayStatuses = {
       colazione: 'skipped',
@@ -3215,11 +3483,12 @@ export default function ManzAlloneApp() {
       meals_progress: 5,
       meal_statuses: hardDayStatuses,
       meal_selections: savedMealSelections[profile],
+      water_count: waterCount[profile],
     });
-    
+
     setScreen('weight');
   };
-  
+
   const handleCloseDay = async () => {
     // Update streak
     const updatedData = { ...data };
@@ -3241,9 +3510,10 @@ export default function ManzAlloneApp() {
       meals_progress: mealsProgress[profile],
       meal_statuses: savedMealStatuses[profile],
       meal_selections: savedMealSelections[profile],
+      water_count: waterCount[profile],
       day_closed: true,
     });
-    
+
     // Ricalcola dati coppia
     const manuelLost = updatedData.manuel.startWeight - (updatedData.manuel.weights[updatedData.manuel.weights.length - 1]?.value || updatedData.manuel.startWeight);
     const carmenLost = updatedData.carmen.startWeight - (updatedData.carmen.weights[updatedData.carmen.weights.length - 1]?.value || updatedData.carmen.startWeight);
@@ -3333,6 +3603,9 @@ export default function ManzAlloneApp() {
             weeklyMovement={weeklyMovement[profile]}
             onMovementToggle={handleMovementToggle}
             onHardDay={handleHardDay}
+            waterCount={waterCount[profile] || 0}
+            waterTarget={data[profile]?.waterTarget || 8}
+            onWaterChange={handleWaterChange}
           />
         )}
         
@@ -3396,6 +3669,8 @@ export default function ManzAlloneApp() {
             onCloseDay={() => {}}
             tasks={dailyTasks[profile === 'manuel' ? 'carmen' : 'manuel']}
             setTasks={(t) => setDailyTasks({...dailyTasks, [profile === 'manuel' ? 'carmen' : 'manuel']: t})}
+            waterCount={waterCount[profile === 'manuel' ? 'carmen' : 'manuel'] || 0}
+            waterTarget={data[profile === 'manuel' ? 'carmen' : 'manuel']?.waterTarget || 8}
           />
         )}
       </AppContainer>
