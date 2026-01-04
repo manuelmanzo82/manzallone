@@ -1386,6 +1386,80 @@ const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mea
               sublabel={tasks.weight ? `✓ ${profileData.weights[profileData.weights.length - 1]?.value} kg registrato` : "Tocca per pesarti"}
             />
           </div>
+
+          {/* Water Counter - inline */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px',
+            background: waterCount >= waterTarget ? `${tokens.colors.success}11` : tokens.colors.bgElevated,
+            borderRadius: tokens.radius.md,
+            border: `1px solid ${waterCount >= waterTarget ? tokens.colors.success + '44' : 'transparent'}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '24px' }}>💧</span>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: 500, color: tokens.colors.textPrimary }}>
+                  {waterCount >= waterTarget ? '✓ Obiettivo acqua raggiunto!' : 'Acqua'}
+                </div>
+                <div style={{ fontSize: '13px', color: tokens.colors.textMuted }}>
+                  {waterCount}/{waterTarget} bicchieri
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={(e) => { e.stopPropagation(); onWaterChange && onWaterChange(Math.max(0, waterCount - 1)); }}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  border: `1px solid ${tokens.colors.textMuted}`,
+                  background: 'transparent',
+                  color: tokens.colors.textPrimary,
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                −
+              </button>
+              <span style={{
+                fontSize: '20px',
+                fontWeight: 700,
+                fontFamily: tokens.fonts.display,
+                color: waterCount >= waterTarget ? tokens.colors.success : tokens.colors.tertiary,
+                minWidth: '30px',
+                textAlign: 'center',
+              }}>
+                {waterCount}
+              </span>
+              <button
+                onClick={(e) => { e.stopPropagation(); onWaterChange && onWaterChange(waterCount + 1); }}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: tokens.colors.tertiary,
+                  color: tokens.colors.bg,
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
           <div
             onClick={() => onNavigate('meals')}
             style={{ cursor: 'pointer' }}
@@ -1544,141 +1618,6 @@ const DailyHome = ({ profile, data, onNavigate, onCloseDay, tasks, setTasks, mea
                 fontSize: '14px',
               }}>
                 Obiettivo settimanale raggiunto!
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Water Counter */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '12px',
-          }}>
-            <h2 style={{
-              fontFamily: tokens.fonts.display,
-              fontSize: '18px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}>
-              <span>💧</span> Acqua
-            </h2>
-            <span style={{
-              background: waterCount >= waterTarget
-                ? `${tokens.colors.success}22`
-                : `${tokens.colors.tertiary}22`,
-              color: waterCount >= waterTarget
-                ? tokens.colors.success
-                : tokens.colors.tertiary,
-              padding: '6px 12px',
-              borderRadius: tokens.radius.full,
-              fontSize: '14px',
-              fontWeight: 700,
-              fontFamily: tokens.fonts.mono,
-            }}>
-              {waterCount}/{waterTarget} 🥛
-            </span>
-          </div>
-
-          {/* Progress bar acqua */}
-          <div style={{
-            height: '8px',
-            background: tokens.colors.bgElevated,
-            borderRadius: tokens.radius.full,
-            overflow: 'hidden',
-            marginBottom: '16px',
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${Math.min((waterCount / waterTarget) * 100, 100)}%`,
-              background: waterCount >= waterTarget
-                ? tokens.colors.success
-                : tokens.colors.tertiary,
-              borderRadius: tokens.radius.full,
-              transition: 'all 0.3s ease',
-            }} />
-          </div>
-
-          {/* Bottoni +/- acqua */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-            padding: '16px',
-            background: tokens.colors.bgElevated,
-            borderRadius: tokens.radius.md,
-          }}>
-            <button
-              onClick={() => onWaterChange && onWaterChange(Math.max(0, waterCount - 1))}
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                border: `2px solid ${tokens.colors.textMuted}`,
-                background: 'transparent',
-                color: tokens.colors.textPrimary,
-                fontSize: '24px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              −
-            </button>
-            <div style={{
-              fontSize: '36px',
-              fontWeight: 700,
-              fontFamily: tokens.fonts.display,
-              color: waterCount >= waterTarget ? tokens.colors.success : tokens.colors.tertiary,
-              minWidth: '60px',
-              textAlign: 'center',
-            }}>
-              {waterCount}
-            </div>
-            <button
-              onClick={() => onWaterChange && onWaterChange(waterCount + 1)}
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                border: 'none',
-                background: tokens.colors.tertiary,
-                color: tokens.colors.bg,
-                fontSize: '24px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              +
-            </button>
-          </div>
-
-          {waterCount >= waterTarget && (
-            <div style={{
-              marginTop: '12px',
-              padding: '12px 16px',
-              background: `${tokens.colors.success}11`,
-              borderRadius: tokens.radius.md,
-              textAlign: 'center',
-            }}>
-              <span style={{ fontSize: '16px' }}>💪</span>
-              <span style={{
-                marginLeft: '8px',
-                color: tokens.colors.success,
-                fontWeight: 600,
-                fontSize: '14px',
-              }}>
-                Obiettivo acqua raggiunto!
               </span>
             </div>
           )}
@@ -3205,13 +3144,25 @@ export default function ManzAlloneApp() {
 
         // Carica movimento settimanale
         const newWeeklyMovement = { ...weeklyMovement };
+
+        // Prima carica todayDone da daily_logs per tutti i profili
+        ['manuel', 'carmen', 'ryan'].forEach(profileId => {
+          const todayLog = todayLogs.find(l => l.profile_id === profileId);
+          if (todayLog) {
+            newWeeklyMovement[profileId] = {
+              ...newWeeklyMovement[profileId],
+              todayDone: todayLog.movement_done || false,
+            };
+          }
+        });
+
+        // Poi carica i dati settimanali da weekly_movement
         thisWeekMovement.forEach(wm => {
           if (wm.profile_id === 'manuel' || wm.profile_id === 'carmen' || wm.profile_id === 'ryan') {
-            const todayLog = todayLogs.find(l => l.profile_id === wm.profile_id);
             newWeeklyMovement[wm.profile_id] = {
+              ...newWeeklyMovement[wm.profile_id],
               done: wm.done || 0,
               target: wm.target || (wm.profile_id === 'ryan' ? 3 : 4),
-              todayDone: todayLog?.movement_done || false,
             };
           }
         });
@@ -3404,10 +3355,10 @@ export default function ManzAlloneApp() {
   const handleMovementToggle = async (done) => {
     const current = weeklyMovement[profile];
     const wasDone = current.todayDone;
-    const newDone = done 
-      ? (wasDone ? current.done : current.done + 1) 
+    const newDone = done
+      ? (wasDone ? current.done : current.done + 1)
       : (wasDone ? current.done - 1 : current.done);
-    
+
     const newWeeklyMovement = {
       ...weeklyMovement,
       [profile]: {
@@ -3417,10 +3368,17 @@ export default function ManzAlloneApp() {
       }
     };
     setWeeklyMovement(newWeeklyMovement);
-    
+
+    // Aggiorna anche dailyTasks.movement per coerenza
+    const newDailyTasks = {
+      ...dailyTasks,
+      [profile]: { ...dailyTasks[profile], movement: done }
+    };
+    setDailyTasks(newDailyTasks);
+
     // Salva movimento settimanale
     await saveWeeklyMovement(profile, newDone);
-    
+
     // Salva nel daily log
     await saveDailyLog(profile, {
       weight_done: dailyTasks[profile].weight,
@@ -3444,7 +3402,7 @@ export default function ManzAlloneApp() {
     await saveDailyLog(profile, {
       weight_done: dailyTasks[profile].weight,
       meals_done: dailyTasks[profile].meals,
-      movement_done: dailyTasks[profile].movement,
+      movement_done: weeklyMovement[profile]?.todayDone || false,
       hard_day: dailyTasks[profile].hardDay,
       meals_progress: mealsProgress[profile],
       meal_statuses: savedMealStatuses[profile],
