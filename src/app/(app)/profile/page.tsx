@@ -1,7 +1,5 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { LogoutButton } from '@/components/LogoutButton'
 import { ProfileForm } from './ProfileForm'
 import type { Profile, Household } from '@/lib/types'
@@ -34,16 +32,12 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-warm-50 dark:bg-warm-950">
+    <main
+      className="min-h-[100dvh] bg-warm-50 dark:bg-warm-950"
+      style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}
+    >
       <header className="sticky top-0 z-10 border-b border-warm-200 bg-white/85 backdrop-blur dark:border-warm-800 dark:bg-warm-900/85">
         <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
-          <Link
-            href="/chat"
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-warm-700 hover:bg-warm-100 dark:text-warm-200 dark:hover:bg-warm-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Chat
-          </Link>
           <h1 className="text-base font-semibold text-warm-900 dark:text-warm-50">
             Profilo
           </h1>

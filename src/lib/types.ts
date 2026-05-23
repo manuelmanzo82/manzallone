@@ -223,3 +223,73 @@ export interface ConversationMessage {
   actions_taken: Record<string, unknown> | null
   created_at: string
 }
+
+// ---- Dashboard RPC return shapes ----
+
+export interface WeightHistoryRow {
+  date: string
+  weight_kg: number | null
+  delta_from_previous: number | null
+}
+
+export interface MealsSummaryRow {
+  date: string
+  total_kcal: number
+  total_protein: number
+  total_carbs: number
+  total_fat: number
+  total_fiber: number
+  meal_count: number
+  meal_types: MealType[]
+}
+
+export interface WorkoutsSummaryRow {
+  date: string
+  count: number
+  total_min: number
+  total_km: number
+  total_kcal: number
+}
+
+export interface WaterRow {
+  date: string
+  total_ml: number
+}
+
+export interface WeekComparison {
+  current_week_start: string
+  previous_week_start: string
+  avg_weight: {
+    current: number | null
+    previous: number | null
+    delta: number | null
+  }
+  avg_kcal_per_day: {
+    current: number | null
+    previous: number | null
+    delta: number | null
+  }
+  workouts: {
+    current: number
+    previous: number
+    delta: number
+  }
+  calorie_target_adherence: {
+    current_hit: number
+    current_total: number
+    previous_hit: number
+    previous_total: number
+    target_kcal: number
+  }
+}
+
+export interface DashboardData {
+  weights: WeightHistoryRow[]
+  meals: MealsSummaryRow[]
+  workouts: WorkoutsSummaryRow[]
+  water: WaterRow[]
+  weekMeals: Meal[]
+  weekWorkouts: Workout[]
+  streak: number
+  comparison: WeekComparison
+}

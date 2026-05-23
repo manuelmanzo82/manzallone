@@ -167,6 +167,12 @@ export function ChatRoot({
               setToolsRunning(true)
             } else if (data.type === 'tools_done') {
               setToolsRunning(false)
+              // Any tool ran -> dashboard data may be stale.
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                  new CustomEvent('manzallone:data:invalidate')
+                )
+              }
             } else if (data.type === 'done') {
               setMessages((prev) =>
                 prev.map((m) =>
@@ -272,7 +278,10 @@ export function ChatRoot({
   })
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-warm-50 dark:bg-warm-950">
+    <div
+      className="flex h-[100dvh] flex-col bg-warm-50 dark:bg-warm-950"
+      style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}
+    >
       <ChatHeader />
 
       <div
@@ -340,7 +349,7 @@ export function ChatRoot({
         </div>
       )}
 
-      <div className="sticky bottom-0 z-10 border-t border-warm-200 bg-white/95 backdrop-blur dark:border-warm-800 dark:bg-warm-900/95">
+      <div className="border-t border-warm-200 bg-white/95 backdrop-blur dark:border-warm-800 dark:bg-warm-900/95">
         <div className="mx-auto w-full max-w-2xl">
           <QuickActions
             onPick={(p) => setDraft((d) => (d ? d + ' ' + p : p))}
