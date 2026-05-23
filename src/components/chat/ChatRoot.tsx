@@ -6,10 +6,10 @@ import type { ConversationMessage } from '@/lib/types'
 import { ChatHeader } from './ChatHeader'
 import { MessageBubble } from './MessageBubble'
 import { TypingIndicator } from './TypingIndicator'
-import { QuickActions } from './QuickActions'
 import { MessageInput } from './MessageInput'
 
 interface Props {
+  userId: string
   conversationId: string
   initialMessages: ConversationMessage[]
   hasMore: boolean
@@ -38,6 +38,7 @@ function toUI(m: ConversationMessage): UIMessage | null {
 }
 
 export function ChatRoot({
+  userId,
   initialMessages,
   hasMore: initialHasMore,
   userName,
@@ -228,6 +229,17 @@ export function ChatRoot({
     queue.forEach((q) => sendMessage(q.text))
   }, [online, sendMessage])
 
+  // Quick-action "Pasto" dispatches a message to send through chat so Claude
+  // can parse it with record_meal.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ text?: string }>).detail
+      if (detail?.text) sendMessage(detail.text)
+    }
+    window.addEventListener('manzallone:chat:send', handler)
+    return () => window.removeEventListener('manzallone:chat:send', handler)
+  }, [sendMessage])
+
   async function loadOlder() {
     if (loadingOlder || !hasMore || messages.length === 0) return
     setLoadingOlder(true)
@@ -282,7 +294,7 @@ export function ChatRoot({
       className="flex h-[100dvh] flex-col bg-warm-50 dark:bg-warm-950"
       style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}
     >
-      <ChatHeader />
+      <ChatHeader userId={userId} />
 
       <div
         ref={scrollerRef}
@@ -351,10 +363,6 @@ export function ChatRoot({
 
       <div className="border-t border-warm-200 bg-white/95 backdrop-blur dark:border-warm-800 dark:bg-warm-900/95">
         <div className="mx-auto w-full max-w-2xl">
-          <QuickActions
-            onPick={(p) => setDraft((d) => (d ? d + ' ' + p : p))}
-            disabled={streaming}
-          />
           <MessageInput
             value={draft}
             onChange={setDraft}

@@ -68,6 +68,7 @@ export default async function ChatPage() {
 
   return (
     <ChatRoot
+      userId={user.id}
       conversationId={conversationId}
       initialMessages={initialMessages}
       hasMore={initialMessages.length === 20}
