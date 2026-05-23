@@ -1,7 +1,7 @@
 import { updateSession } from '@/lib/supabase/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_PREFIXES = ['/auth', '/_next', '/manifest', '/favicon']
+const PUBLIC_PREFIXES = ['/auth', '/_next', '/manifest', '/favicon', '/api/auth']
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))
@@ -33,9 +33,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/onboarding', request.url))
   }
 
-  // Authenticated + onboarded but on /onboarding -> back to home.
+  // Authenticated + onboarded but on /onboarding -> chat.
   if (onboardingCompleted && pathname === '/onboarding') {
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL('/chat', request.url))
+  }
+
+  // Authenticated + onboarded on root -> chat is the home.
+  if (onboardingCompleted && pathname === '/') {
+    return NextResponse.redirect(new URL('/chat', request.url))
   }
 
   return response
