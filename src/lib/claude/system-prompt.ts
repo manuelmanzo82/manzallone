@@ -7,6 +7,14 @@ interface FrequentFoodRow {
   frequency: number
 }
 
+interface HouseholdMember {
+  id: string
+  name: string | null
+  share_meals: boolean
+  share_weight: boolean
+  share_stats: boolean
+}
+
 interface ContextSnapshot {
   now_iso: string
   date_label: string
@@ -27,6 +35,7 @@ interface ContextSnapshot {
     avg_kcal: number | null
     workouts_count: number
   }
+  household_members: HouseholdMember[]
 }
 
 // Public: returns both the rendered prompt and the structured snapshot
@@ -58,6 +67,7 @@ async function collectContext(
     weights7Res,
     meals7Res,
     workouts7Res,
+    householdRes,
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).single(),
     supabase.rpc('get_daily_status', { p_user_id: userId }),
@@ -90,6 +100,7 @@ async function collectContext(
       .select('id')
       .eq('user_id', userId)
       .gte('recorded_at', `${sevenDaysAgo}T00:00:00Z`),
+    supabase.rpc('get_household_members', { p_user_id: userId }),
   ])
 
   const profile = (profileRes.data ?? {}) as Profile
@@ -134,6 +145,20 @@ async function collectContext(
 
   const workouts_count = (workouts7Res.data ?? []).length
 
+  const household_members = ((householdRes.data ?? []) as Array<{
+    id: string
+    name: string | null
+    share_meals: boolean
+    share_weight: boolean
+    share_stats: boolean
+  }>).map((r) => ({
+    id: r.id,
+    name: r.name,
+    share_meals: r.share_meals,
+    share_weight: r.share_weight,
+    share_stats: r.share_stats,
+  }))
+
   const hour = Number(
     new Intl.DateTimeFormat('it-IT', {
       hour: '2-digit',
@@ -162,6 +187,7 @@ async function collectContext(
     daily_status,
     frequent_foods,
     last7days: { weight_delta_kg, avg_kcal, workouts_count },
+    household_members,
   }
 }
 
@@ -210,6 +236,22 @@ function renderPrompt(s: ContextSnapshot): string {
 
   const last7 = `peso Δ ${s.last7days.weight_delta_kg ?? '—'} kg, media ${s.last7days.avg_kcal ?? '—'} kcal/die, ${s.last7days.workouts_count} allenamenti`
 
+  const householdBlock =
+    s.household_members.length === 0
+      ? 'Nessun altro membro condivide questo household. NON proporre di registrare per altri.'
+      : s.household_members
+          .map((m) => {
+            const flags: string[] = []
+            if (m.share_meals)  flags.push('pasti ✓')
+            else                flags.push('pasti ✗')
+            if (m.share_weight) flags.push('peso ✓')
+            else                flags.push('peso ✗')
+            if (m.share_stats)  flags.push('stats ✓')
+            else                flags.push('stats ✗')
+            return `${m.name ?? 'senza nome'} (${flags.join(', ')})`
+          })
+          .join('\n  - ')
+
   return `# Identità
 
 Sei il Claude personale di ${firstName}. Lo aiuti con tracking salute, nutrizione, peso e attività in italiano sempre.
@@ -250,15 +292,20 @@ Tono: ${p.coach_tone ?? 'direct'} — sii ${toneAdjective(p.coach_tone)}. Sui sg
 
 ${last7}
 
+# Household (altri membri)
+
+  - ${householdBlock}
+
 # Tool a tua disposizione
 
 - log_weight (registra pesata + ricalcola se necessario)
-- record_meal (registra pasto con grammature; il server calcola kcal/macro)
+- record_meal (registra pasto con grammature; il server calcola kcal/macro; supporta for_members per logging condiviso)
 - log_water (registra ml)
 - log_workout (registra allenamento)
 - suggest_next_meal (genera target macros + candidati per prossimo pasto)
 - query_food (lookup nutrizionale alimento)
-- query_daily_status (snapshot live giornata)
+- query_daily_status (snapshot live giornata dell'utente)
+- query_household_member_status (snapshot giornata di un altro membro household — solo dati strutturati, mai chat)
 
 # Regole di comportamento
 
@@ -270,6 +317,12 @@ ${last7}
 6. Mai inventare cibi non presenti nel food_catalog senza usare query_food prima per verificare.
 7. Quando chiami un tool, NON commentare il fatto che lo stai chiamando — agisci e basta. L'utente vedrà il risultato finale.
 8. Risposte massimo 3-4 frasi salvo necessità.
+9. Logging multi-membro (household): se l'utente menziona ESPLICITAMENTE un altro membro household (es. "io e Carmen", "ho preso uno yogurt per Carmen", "per Carmen") in un contesto di pasto, usa record_meal con for_members popolato con il loro nome. Casi tipici:
+   - "io e Carmen mangiamo X" → for_members=["Carmen"], include_self=true (default)
+   - "ho preso/cucinato X per Carmen" → for_members=["Carmen"], include_self=false
+   - "ho fatto X solo per me" o nessuna menzione di altri → NON passare for_members.
+   Conferma sempre nel testo per chi hai registrato (es. "Pasto registrato per te e Carmen."). Se il nome non si risolve, il server torna un errore: chiedi chiarimento.
+10. Domande sullo stato di un altro membro ("come sta Carmen oggi", "quanti pasti ha fatto X") → usa query_household_member_status. NON inventare risposte, NON guardare la chat altrui (non hai accesso). Se il membro non ha share_stats=true il tool restituirà not_authorized — riportalo con tatto.
 `
 }
 

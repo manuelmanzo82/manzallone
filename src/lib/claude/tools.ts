@@ -25,7 +25,7 @@ export const chatTools: ChatTool[] = [
   {
     name: 'record_meal',
     description:
-      'Registra un pasto. Items è un array di { name, quantity_g }. Usa nomi italiani naturali (es. "petto di pollo", "yogurt greco zero", "pasta integrale"): il server fa risoluzione fuzzy contro food_catalog (235 alimenti). I totali kcal/macro vengono calcolati lato server. La response include unresolved_items: se non vuoto, segnala all\'utente che non hai trovato match preciso. meal_type deve essere coerente con l\'ora corrente (vedi contesto temporale).',
+      'Registra un pasto. Items è un array di { name, quantity_g }. Usa nomi italiani naturali (es. "petto di pollo", "yogurt greco zero", "pasta integrale"): il server fa risoluzione fuzzy contro food_catalog (235 alimenti). I totali kcal/macro vengono calcolati lato server. La response include unresolved_items: se non vuoto, segnala all\'utente che non hai trovato match preciso. meal_type deve essere coerente con l\'ora corrente.\n\nMULTI-MEMBRO: se l\'utente dice esplicitamente che un pasto è anche per un altro membro dell\'household (es. "stasera io e Carmen mangiamo X", "ho preso uno yogurt per Carmen"), passa for_members con i nomi/ruoli citati. Il server risolve i nomi a profili dello stesso household e crea N righe pasto collegate dallo stesso shared_meal_id quando i target sono più di uno. include_self=false se l\'utente ha preso/cucinato qualcosa SOLO per l\'altro senza mangiarlo lui.',
     input_schema: {
       type: 'object',
       properties: {
@@ -49,6 +49,17 @@ export const chatTools: ChatTool[] = [
           enum: ['home', 'restaurant', 'work', 'outdoors', 'other'],
         },
         notes: { type: 'string' },
+        for_members: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Nomi (primo nome o nome completo) o ruoli (partner, compagna, ...) di altri membri household per cui registrare lo stesso pasto. Esempio: ["Carmen"]. Lascia vuoto per registrare solo per l\'utente attuale.',
+        },
+        include_self: {
+          type: 'boolean',
+          description:
+            'Default true: se for_members è impostato, registra anche per l\'utente attuale. Imposta false se il pasto era SOLO per gli altri membri (es. "ho preso uno yogurt per Carmen, io non l\'ho mangiato").',
+        },
       },
       required: ['meal_type', 'items'],
     },
@@ -105,6 +116,22 @@ export const chatTools: ChatTool[] = [
     input_schema: {
       type: 'object',
       properties: {},
+    },
+  },
+  {
+    name: 'query_household_member_status',
+    description:
+      'Restituisce lo snapshot della giornata di un ALTRO membro dell\'household (kcal/macro/acqua + pasti contati). Da usare se l\'utente chiede "come sta X oggi", "quanti pasti ha fatto X", "X ha mangiato a pranzo?". Non accede MAI alla chat o ai messaggi del membro, solo dati strutturati. Richiede consenso (privacy_prefs.share_stats sul target). Restituisce { error: "not_authorized" } se non autorizzato.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        member_name: {
+          type: 'string',
+          description:
+            'Nome (anche solo il primo nome) o ruolo (partner, compagna, ...) del membro household.',
+        },
+      },
+      required: ['member_name'],
     },
   },
 ]
