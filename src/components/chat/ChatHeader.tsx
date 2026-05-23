@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import {
+  Camera,
   Dumbbell,
   Droplet,
   Scale,
@@ -23,16 +24,33 @@ const ACTIONS: { kind: QuickActionKind; Icon: LucideIcon; label: string }[] = [
   { kind: 'workout', Icon: Dumbbell,         label: 'Allenamento' },
 ]
 
+const CHAT_UPLOAD_EVENT = 'manzallone:chat:upload'
+
 export function ChatHeader({ userId }: Props) {
   const [openKind, setOpenKind] = useState<QuickActionKind | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const showToast = useCallback((msg: string) => {
     setToast(msg)
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
     toastTimer.current = window.setTimeout(() => setToast(null), 2500)
   }, [])
+
+  function onFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Immagine troppo grande (max 5MB)')
+    } else {
+      window.dispatchEvent(
+        new CustomEvent(CHAT_UPLOAD_EVENT, { detail: { file } })
+      )
+    }
+    // reset input so picking the same file twice still triggers change
+    e.target.value = ''
+  }
 
   return (
     <>
@@ -51,7 +69,7 @@ export function ChatHeader({ userId }: Props) {
                 online
               </div>
             </div>
-            <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-2">
+            <div className="flex flex-1 items-center justify-end gap-1 sm:gap-1.5">
               {ACTIONS.map(({ kind, Icon, label }) => (
                 <button
                   key={kind}
@@ -59,7 +77,7 @@ export function ChatHeader({ userId }: Props) {
                   onClick={() => setOpenKind(kind)}
                   aria-label={label}
                   title={label}
-                  className="group relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-warm-600 transition hover:bg-primary-50 hover:text-primary-700 active:scale-95 dark:text-warm-300 dark:hover:bg-primary-900/30 dark:hover:text-primary-300 sm:h-10 sm:w-10"
+                  className="group relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-warm-600 transition hover:bg-primary-50 hover:text-primary-700 active:scale-95 sm:h-10 sm:w-10 dark:text-warm-300 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"
                 >
                   <Icon className="h-5 w-5" />
                   <span className="pointer-events-none absolute top-full z-30 mt-1 hidden whitespace-nowrap rounded-md bg-warm-900 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity sm:group-hover:block sm:group-hover:opacity-100 dark:bg-warm-100 dark:text-warm-900">
@@ -67,6 +85,25 @@ export function ChatHeader({ userId }: Props) {
                   </span>
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Carica screenshot"
+                title="Carica screenshot"
+                className="group relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-warm-600 transition hover:bg-accent-50 hover:text-accent-700 active:scale-95 sm:h-10 sm:w-10 dark:text-warm-300 dark:hover:bg-accent-500/20 dark:hover:text-accent-300"
+              >
+                <Camera className="h-5 w-5" />
+                <span className="pointer-events-none absolute top-full z-30 mt-1 hidden whitespace-nowrap rounded-md bg-warm-900 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity sm:group-hover:block sm:group-hover:opacity-100 dark:bg-warm-100 dark:text-warm-900">
+                  Screenshot
+                </span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onFilePicked}
+              />
             </div>
           </div>
           <ChatDailyBanner />

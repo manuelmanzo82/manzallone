@@ -18,11 +18,11 @@ const CHAT_SEND_EVENT = 'manzallone:chat:send'
 export function QuickActionModal({ kind, userId, onClose, onSuccess }: Props) {
   return (
     <div
-      className="fixed inset-0 z-40 flex items-end justify-center bg-warm-900/40 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto bg-warm-900/40 p-3 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-2xl border border-warm-200 bg-white p-5 shadow-xl dark:border-warm-700 dark:bg-warm-900"
+        className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-warm-200 bg-white p-4 shadow-xl sm:p-6 dark:border-warm-700 dark:bg-warm-900"
         onClick={(e) => e.stopPropagation()}
       >
         {kind === 'weight' && (
@@ -99,18 +99,18 @@ function WeightForm({
           step="0.1"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="flex-1 rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-lg font-semibold text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
+          className="w-full min-w-0 flex-1 rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-lg font-semibold text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
           placeholder="89.2"
           autoFocus
         />
-        <span className="text-warm-500">kg</span>
+        <span className="flex-shrink-0 text-warm-500">kg</span>
       </div>
       <input
         type="text"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Nota (opzionale)"
-        className="mt-2 w-full rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-sm text-warm-700 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-200"
+        className="w-full rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-sm text-warm-700 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-200"
       />
     </Form>
   )
@@ -169,7 +169,7 @@ function WaterForm({
             type="button"
             onClick={() => setMl(preset)}
             className={[
-              'rounded-xl border px-3 py-2 text-sm font-semibold transition',
+              'w-full rounded-xl border px-2 py-2 text-sm font-semibold transition',
               ml === preset
                 ? 'border-sky-500 bg-sky-100 text-sky-700 dark:border-sky-400 dark:bg-sky-500/20 dark:text-sky-200'
                 : 'border-warm-200 bg-warm-50 text-warm-700 hover:border-sky-300 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-200',
@@ -179,7 +179,7 @@ function WaterForm({
           </button>
         ))}
       </div>
-      <div className="mt-3 flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <input
           type="number"
           inputMode="numeric"
@@ -189,9 +189,9 @@ function WaterForm({
             setMl(e.target.value === '' ? '' : Number(e.target.value))
           }
           placeholder="Custom"
-          className="flex-1 rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-base text-warm-900 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
+          className="w-full min-w-0 flex-1 rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-base text-warm-900 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
         />
-        <span className="text-warm-500">ml</span>
+        <span className="flex-shrink-0 text-warm-500">ml</span>
       </div>
     </Form>
   )
@@ -262,13 +262,24 @@ function MealForm({
         rows={3}
         autoFocus
         placeholder="es. 150g pollo grigliato, 80g riso, insalata mista"
-        className="mt-2 w-full rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-sm text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
+        className="w-full resize-none rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-sm text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
       />
     </Form>
   )
 }
 
-// ---- Workout ----
+// ---- Workout (free text + chip suggestions) ----
+
+const WORKOUT_SUGGESTIONS = [
+  'Corsa',
+  'Camminata',
+  'Palestra',
+  'Bici',
+  'Nuoto',
+  'Yoga',
+  'Pilates',
+  'Calcetto',
+] as const
 
 function WorkoutForm({
   userId,
@@ -279,7 +290,7 @@ function WorkoutForm({
   onClose: () => void
   onSuccess: (msg: string) => void
 }) {
-  const [type, setType] = useState('Corsa')
+  const [type, setType] = useState('')
   const [duration, setDuration] = useState<number | ''>(30)
   const [distance, setDistance] = useState<number | ''>('')
   const [busy, setBusy] = useState(false)
@@ -296,8 +307,7 @@ function WorkoutForm({
       setErr('Durata non valida (1–600 min).')
       return
     }
-    const dist =
-      distance === '' ? null : Number(distance)
+    const dist = distance === '' ? null : Number(distance)
     if (dist !== null && (!Number.isFinite(dist) || dist < 0 || dist > 500)) {
       setErr('Distanza non valida (0–500 km).')
       return
@@ -334,11 +344,29 @@ function WorkoutForm({
         type="text"
         value={type}
         onChange={(e) => setType(e.target.value)}
-        placeholder="es. Corsa, Palestra, Bici"
+        placeholder="es. Corsa, Calcetto, Pilates, Padel..."
+        autoFocus
         className="w-full rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-sm text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
       />
-      <div className="mt-2 flex gap-2">
-        <label className="flex flex-1 flex-col text-xs text-warm-500">
+      <div className="flex flex-wrap gap-1.5">
+        {WORKOUT_SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setType(s)}
+            className={[
+              'rounded-full border px-2.5 py-1 text-xs font-medium transition',
+              type.toLowerCase() === s.toLowerCase()
+                ? 'border-primary-500 bg-primary-100 text-primary-700 dark:border-primary-400 dark:bg-primary-500/20 dark:text-primary-200'
+                : 'border-warm-200 bg-warm-50 text-warm-600 hover:border-primary-300 hover:bg-primary-50 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-300',
+            ].join(' ')}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <label className="flex min-w-0 flex-1 flex-col text-xs text-warm-500">
           Durata (min)
           <input
             type="number"
@@ -348,10 +376,10 @@ function WorkoutForm({
             onChange={(e) =>
               setDuration(e.target.value === '' ? '' : Number(e.target.value))
             }
-            className="mt-0.5 rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-base text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
+            className="mt-0.5 w-full rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-base text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
           />
         </label>
-        <label className="flex flex-1 flex-col text-xs text-warm-500">
+        <label className="flex min-w-0 flex-1 flex-col text-xs text-warm-500">
           Distanza km (opz.)
           <input
             type="number"
@@ -361,7 +389,7 @@ function WorkoutForm({
             onChange={(e) =>
               setDistance(e.target.value === '' ? '' : Number(e.target.value))
             }
-            className="mt-0.5 rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-base text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
+            className="mt-0.5 w-full rounded-xl border border-warm-200 bg-warm-50 px-3 py-2 text-base text-warm-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-warm-700 dark:bg-warm-800 dark:text-warm-50"
           />
         </label>
       </div>
@@ -396,13 +424,13 @@ function Form({
         {title}
       </h3>
       {hint && <p className="mt-1 text-xs text-warm-500">{hint}</p>}
-      <div className="mt-4">{children}</div>
+      <div className="mt-4 space-y-3">{children}</div>
       {err && <div className="mt-2 text-xs text-danger-600">{err}</div>}
-      <div className="mt-4 flex gap-2">
+      <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row">
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 rounded-xl border border-warm-200 px-3 py-2 text-sm font-medium text-warm-700 hover:bg-warm-100 dark:border-warm-700 dark:text-warm-200 dark:hover:bg-warm-800"
+          className="w-full rounded-xl border border-warm-200 px-3 py-2 text-sm font-medium text-warm-700 hover:bg-warm-100 sm:w-auto sm:flex-1 dark:border-warm-700 dark:text-warm-200 dark:hover:bg-warm-800"
         >
           Annulla
         </button>
@@ -410,7 +438,7 @@ function Form({
           type="button"
           onClick={onSave}
           disabled={busy}
-          className="flex-1 rounded-xl bg-primary-600 px-3 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60"
+          className="w-full rounded-xl bg-primary-600 px-3 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60 sm:w-auto sm:flex-1"
         >
           {busy ? 'Salvo…' : saveLabel}
         </button>

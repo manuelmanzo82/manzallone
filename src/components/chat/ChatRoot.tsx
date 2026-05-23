@@ -7,6 +7,8 @@ import { ChatHeader } from './ChatHeader'
 import { MessageBubble } from './MessageBubble'
 import { TypingIndicator } from './TypingIndicator'
 import { MessageInput } from './MessageInput'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
+import { invalidateDashboardCache } from '@/hooks/useDashboardData'
 
 interface Props {
   userId: string
@@ -23,6 +25,8 @@ interface UIMessage {
   content: string
   createdAt: string | null
   pending?: boolean
+  imageUrl?: string | null
+  imageLoading?: boolean
 }
 
 const QUEUE_KEY = 'manzallone:chat:queue'
@@ -240,6 +244,123 @@ export function ChatRoot({
     return () => window.removeEventListener('manzallone:chat:send', handler)
   }, [sendMessage])
 
+  // Screenshot upload flow: client uploads to Storage, then asks /api/vision/analyze
+  // to read the image + insert into the right table.
+  const uploadScreenshot = useCallback(
+    async (file: File) => {
+      const tempId = `temp-img-${Date.now()}`
+      const tempAssistantId = `temp-img-${Date.now()}-a`
+      const localUrl = URL.createObjectURL(file)
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: tempId,
+          role: 'user',
+          content: '',
+          createdAt: new Date().toISOString(),
+          imageUrl: localUrl,
+          imageLoading: true,
+        },
+        {
+          id: tempAssistantId,
+          role: 'assistant',
+          content: '',
+          createdAt: null,
+          pending: true,
+        },
+      ])
+      setStreaming(true)
+      setErrorBanner(null)
+
+      try {
+        const ts = Date.now()
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-60)
+        const path = `${userId}/${ts}_${safeName}`
+
+        const supabase = createSupabaseClient()
+        const { error: upErr } = await supabase.storage
+          .from('screenshots')
+          .upload(path, file, {
+            contentType: file.type || 'image/jpeg',
+            cacheControl: '3600',
+            upsert: false,
+          })
+        if (upErr) throw new Error(upErr.message)
+
+        const res = await fetch('/api/vision/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path }),
+        })
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(
+            body?.detail ||
+              'Non sono riuscito a leggere lo screenshot, prova a registrare manualmente o ritaglia meglio.'
+          )
+        }
+
+        const data = (await res.json()) as {
+          assistantMessage: string
+          action: { kind: string }
+        }
+
+        setMessages((prev) =>
+          prev.map((m) => {
+            if (m.id === tempId) {
+              return { ...m, imageLoading: false }
+            }
+            if (m.id === tempAssistantId) {
+              return {
+                ...m,
+                content: data.assistantMessage,
+                createdAt: new Date().toISOString(),
+                pending: false,
+              }
+            }
+            return m
+          })
+        )
+
+        // If we wrote to the DB, refresh the dashboard cache.
+        if (
+          data.action.kind === 'workout_inserted' ||
+          data.action.kind === 'weight_inserted'
+        ) {
+          invalidateDashboardCache()
+        }
+      } catch (e) {
+        const msg =
+          e instanceof Error
+            ? e.message
+            : 'Errore durante l\'analisi dello screenshot'
+        setErrorBanner(msg)
+        setMessages((prev) =>
+          prev
+            .map((m) =>
+              m.id === tempId ? { ...m, imageLoading: false } : m
+            )
+            .filter((m) => m.id !== tempAssistantId)
+        )
+      } finally {
+        setStreaming(false)
+      }
+    },
+    [userId]
+  )
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ file?: File }>).detail
+      if (detail?.file) uploadScreenshot(detail.file)
+    }
+    window.addEventListener('manzallone:chat:upload', handler)
+    return () =>
+      window.removeEventListener('manzallone:chat:upload', handler)
+  }, [uploadScreenshot])
+
   async function loadOlder() {
     if (loadingOlder || !hasMore || messages.length === 0) return
     setLoadingOlder(true)
@@ -326,6 +447,8 @@ export function ChatRoot({
               content={m.content}
               createdAt={m.createdAt}
               showAvatar={m.showAvatar}
+              imageUrl={m.imageUrl ?? null}
+              imageLoading={m.imageLoading}
             />
           ))}
 
